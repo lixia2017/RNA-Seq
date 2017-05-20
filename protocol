@@ -1,0 +1,323 @@
+RNA-Seq Analysis protocol
+
+1. 针对比对到转录组上的clean reads数进行分析
+...
+首先，提供一个大概的流程吧。
+#下机数据QC:
+Ubuntu软件包内自带Fastqc
+故安装命令apt-get install fastqc
+fastqc命令：
+fastqc -o . -t 5 SRR3101238_1.fastq.gz &
+-o . 将结果输出到当前目录
+-t 5 表示开5个线程运行
+(四个样本，双端测序，要分别对八个fastq文件执行八次)
+ 
+###下载人类参考基因组和注释文件
+人类参考基因组：Hisat2官网上有Ensemble GRCh38的基因组索引，可以直接下载使用
+注释文件：下载自ensemble数据库ftp://ftp.ensembl.org/pub/release-86/gtf/homo_sapiens
+思路：
+1. 将RNA-seq的测序reads使用hisat2比对
+2. samtools将sam文件转成bam，并且排序，为下游分析做准备
+3. stringtie对每个样本进行转录本组装
+4. stringtie 将所有样本的转录本进行合并 注意：此处的mergelist.txt是自己创建的
+5. 计算表达量并且为Ballgown包提供输入文件
+6. Ballgown的安装 分析，需提供一个分组信息；
+
+
+###安装HISAT2
+下载地址：
+ http://ccb.jhu.edu/software/hisat2/downloads/
+ wget http://ccb.jhu.edu/software/hisat2/downloads/hisat2-2.0.0-beta-Linux_x86_64.zip -P ./
+ 解 压 缩：
+ unzip hisat2-2.0.0-beta-Linux_x86_64.zip
+ 
+ ###除了下载，还可以自己从gtf文件构建索引
+ extract_exons.py hg19.annotation.gtf > exons.txt
+ extract_splice_sites.py hg19.annotation.gtf > splicesites.txt
+ 
+ chr0 based left pos0 based left leftstrand
+ 
+ ./hisat2-2.0.0-beta/hisat2-build -f ucsc.hg19.fasta --ss splicesites.txt --exon exons.txt -p 7 ./ucsc.hg19
+## 添加--ss和--exon选项后，需要很大的内存，build 人基因组的话需要200G RAM，如果没有这么大内存，不要添加这两个选项，
+###但要在后续运行hisat时添加 --known-splicesite-infile选项
+hisat2-build -f ucsc.hg19.fasta -p 7 ./uscs.hg19 ##大概需要一小时二十分钟
+build index的过程和bowtie2很像。
+#-q指定fastq格式
+#比对，生成bam 文件
+hisat2 -q -x ./ucsc.hg19 -1 reads_1.fastq -2 reads_2.fastq -S alns.sam -t
+## hisat2 -q -x ./ucsc.hg19 -1 reads_1.fastq -2 reads_2.fastq -S alns.sam --known-splicesite-infile splicesites.txt -t
+
+###stringtie进行格式转换
+stringtie的输入BAM文件需要先进行sort
+samtools view -Su alns.sam | samtools sort - alns.sorted
+stringtie alns.sorted.bam -b stringtie_input_dir -e -G hg19.annotation.gtf -C cov_ref.gtf -p 7 -o stringtie.out.gtf
+# -B This switch enables the output of Ballgown input table files (*.ctab) containing coverage data for the reference transcripts given with the -G option. or -b Just like -B this option enables the output of *.ctab files for Ballgown
+# -e Limits the processing of read alignments to only estimate and output the assembled transcripts matching the reference transcripts given with the -G option
+# -C StringTie outputs a file with the given name with all transcripts in the provided reference file that are fully covered by reads (requires -G).
+在-b 指定的文件夹下生成特定的文件
+e2t.ctab 
+e_data.ctab 
+i2t.ctab 
+i_data.ctab 
+t_data.ctab
+e即外显子、i即内含子、t转录本；
+e2t即外显子和转录本间的关系，
+i2t即内含子和转录本间的关系，
+t_data即转录本的数据
+####ballgown处理与可视化
+source("http://bioconductor.org/biocLite.R")
+ biocLite("ballgown")
+ library(ballgown)
+ data_directory = system.file('extdata', package='ballgown')
+ #data_directory = c('./stringtie.input/')
+ bg = ballgown(dataDir=data_directory, samplePattern='sample', meas='all') # load data
+ # 两组，每组各十个样本
+ pData(bg) = data.frame(id=sampleNames(bg), group=rep(c(1,0), each=10)) # get pData
+ stat_results = stattest(bg, feature='transcript', meas='FPKM', covariate='group',getFC = TRUE)
+ write.table(stat_results,file="./result.out",sep="\t",quote =FALSE,row.names=FALSE)
+ 
+参考文章的全部代码：
+##1.Map the reads for each sample to the reference genome
+hisat2 -p 8 --dta -x chrX_data/indexes/chrX_tran -1 chrX_data/samples/ERR188044_chrX_1.fastq.gz -2 chrX_data/samples/ERR188044_chrX_2.fastq.gz -S ERR188044_chrX.sam
+##2.Sort and convert the SAM files to BAM
+samtools sort -@ 8 -o ERR188044_chrX.bam ERR188044_chrX.sam
+##3.assemble and quantify expressed genes and transcripts
+stringtie -p 8 -G chrX_data/genes/chrX.gtf -o ERR188044_chrX.gtf -l ERR188044 ERR188044_chrX.bam
+##4.Merge transcripts from all samples:
+stringtie --merge -p 40 -G chrX_data/genes/chrX.gtf -o stringtie_merged.gtf chrX_data/mergelist.txt 
+##5. Examine how the transcripts compare with the reference annotation (optional)
+./bin/gffcompare -r chrX_data/genes/chrX.gtf -G -o merged stringtie_merged.gtf  
+##6. Estimate transcript abundances and create table counts for Ballgown
+stringtie -e -B -p 48 -G stringtie_merged.gtf -o ballgown/ERR188044/ERR188044_chrX.gtf ERR188044_chrX.bam
+ 
+setwd(".......")
+##7. Load relevant R packages:
+ls("package:ballgown")
+library(ballgown)
+library(RSkittleBrewer)
+library(genefilter)
+library(dplyr)
+library(devtools)
+##8. Load the phenotype data for the samples:
+pheno_data = read.csv("chrX_data/geuvadis_phenodata.csv")  # Errors
+##9. Read in the expression data that were calculated by StringTie:
+bg_chrX = ballgown(dataDir = "ballgown", samplePattern = "ERR", pData=pheno_data)
+##10.Filter to remove low-abundance genes:
+bg_chrX_filt = subset(bg_chrX,"rowVars(texpr(bg_chrX)) >1",genomesubset=TRUE)
+##11. Identify transcripts that show statistically significant differences between groups:
+results_transcripts = stattest(bg_chrX_filt,feature="transcript",covariate="sex",adjustvars =c("population"), getFC=TRUE, meas="FPKM")
+##12. Identify genes that show statistically significant differences between groups:
+results_genes = stattest(bg_chrX_filt, feature="gene",covariate="sex", adjustvars = c("population"), getFC=TRUE,meas="FPKM")
+##13. Add gene names and gene IDs to the results_transcripts data frame:  #Errors
+results_transcripts =data.frame(geneNames=ballgown::geneNames(bg_chrX_filt),geneIDs=ballgown::geneIDs(bg_chrX_filt),transcriptNames=ballgown::transcriptNames(bg_chrX_filt),results_transcripts[,-1])
+##14. Sort the results from the smallest P value to the largest:
+results_transcripts = arrange(results_transcripts,pval)
+results_genes = arrange(results_genes,pval)
+##15. Write the results to a csv file that can be shared and distributed:
+write.csv(results_transcripts, "chrX_transcript_results.csv",row.names=FALSE)
+write.csv(results_genes, "chrX_gene_results.csv",row.names=FALSE)
+##16. Identify transcripts and genes with a q value <0.05:
+subset(results_transcripts,results_transcripts$qval<0.05)
+subset(results_genes,results_genes$qval<0.05)
+##17. Make the plots pretty. This step is optional, but if you do run it you will get the plots in the nice colors:
+tropical= c('darkorange', 'dodgerblue','hotpink', 'limegreen', 'yellow')
+palette(tropical)
+##18. Show the distribution of gene abundances (measured as FPKM values) across samples:
+fpkm = texpr(bg_chrX,meas="FPKM")
+fpkm = log2(fpkm+1)
+boxplot(fpkm,col=as.numeric(pheno_data$sex),las=2,ylab='log2(FPKM+1)')
+##19. Make plots of individual transcripts across samples:
+ballgown::transcriptNames(bg_chrX)[12]
+ballgown::geneNames(bg_chrX)[12]
+plot(fpkm[12,] ~ pheno_data$sex, border=c(1,2),main=paste(ballgown::geneNames(bg_chrX)[12],' : ',ballgown::transcriptNames(bg_chrX)[12]),pch=19, xlab="Sex",ylab='log2(FPKM+1)')
+points(fpkm[12,] ~ jitter(as.numeric(pheno_data$sex)),col=as.numeric(pheno_data$sex))
+##20. Plot the structure and expression levels in a sample of all transcripts that share the same gene locus.
+plotTranscripts(ballgown::geneIDs(bg_chrX)[1729], bg_chrX, main=c('Gene XIST in sample ERR188234'), sample=c('ERR188234'))    #Errors
+
+##21. We can also plot the average expression levels for all transcripts of a gene within different groups using the plotMeans function.
+plotMeans('MSTRG.56', bg_chrX_filt,groupvar="sex",legend=FALSE)
+
+
+
+2. 组内重复，转录本取交集；组间转录本，不同转录本取并集；
+
+····
+
+3. 由于一个基因可能对应多个剪切体，对于这样的基因表达量，应求和。
+
+rm(list=ls())
+setwd("C:/users/lixia/Desktop/learn/workshop/")
+
+TT<-read.table("2D3D.csv",header=TRUE, sep=",")
+
+A<-data.frame(tapply(TT$X2DMA1_FPKM,INDEX=TT$gene_id,FUN=sum))
+B<-data.frame(tapply(TT$X2DMA2_FPKM,INDEX=TT$gene_id,FUN=sum))
+C<-data.frame(tapply(TT$X3DMA1_FPKM,INDEX=TT$gene_id,FUN=sum))
+D<-data.frame(tapply(TT$X3DMA2_FPKM,INDEX=TT$gene_id,FUN=sum))
+
+write.table(A,file="2D1.csv",sep=",")
+write.table(B,file="2D2.csv",sep=",")
+write.table(C,file="3D1.csv",sep=",")
+write.table(D,file="3D2.csv",sep=",")
+
+后续手动汇总！！！
+
+4. 将geneid 转化为Symbol，由于部分geneid可能没有对应的gene symbol，或者数据库不完整的原因，需要merge上述两个文件。。。
+
+library(org.Hs.eg.db)
+library(biomaRt)
+
+setwd("C:/users/lixia/Desktop/learn/workshop/NEW/")
+rm(list=ls())
+
+##读入文件，求和好的, **转换时选用何种数据库需要查下！！！**
+ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+TT<-read.table("rawdata fpkm sum.csv",header=TRUE, sep=",")
+
+
+###转换ID
+tmp<-TT$gene_id
+tmp2<-getBM(attributes=c("entrezgene","hgnc_symbol",
+                               "ensembl_gene_id"), filters = "entrezgene", 
+                  values =tmp, mart=ensembl)
+write.table(tmp2, file="tmp2.xls", sep="\t",quote=F)
+###geneid 转换为symbol时，发现两种现象，一种为1个gene 对应多个转录本，一个为部分gene无symol；
+
+
+###删除重复值
+index<-duplicated(tmp2$entrezgene)
+index
+tmp3<-tmp2[!index,]
+write.table(tmp3, file="tmp3.xls", sep="\t",quote=F)
+###tmp3少于TT的原因是，部分基因无对应的symbol
+
+
+###匹配TT与tmp3数据
+TTT<-merge(TT, tmp3, by.x=c("gene_id"), 
+          by.y=c("entrezgene"),  
+          all.x=TRUE,all.y=TRUE)
+
+write.table(TTT, file="TTT.xls", sep="\t",quote=F)
+###此处的TTT文件即为对应的，进行下游分析差异基因的数据。。。
+
+
+5. 差异分析前的QC
+
+相关系数矩阵；
+？？？
+
+
+层次聚类分析；
+setwd("C:/users/Administrator/Desktop/R/LX")
+lx<-read.table("abc.csv", row.names = "symbol", header=TRUE, sep=",")
+d<-dist(lx)
+head(d)
+lx2<-hclust(d, method = "average")
+plot(lx2,hang=-1,cex=1.2,main="single cell")
+
+PCA 2D分析；
+setwd("F:/R/PCA")
+x<-read.table("2D3D expreset ok log.csv", header=TRUE, row.names="Symbol", sep = ",", )
+library(gmodels)
+??gmodels
+xxx <- prcomp(t(x))
+biplot(xxx,var.axes=FALSE,ylabs=NULL)
+
+PCA 3D分析
+rm(list=ls())
+setwd("F:/R/PCA/lx")
+x<-read.table("2D3D expreset ok log.csv", header=TRUE, row.names="Symbol", sep = ",", )
+xx <- prcomp(t(x))
+biplot(xx,var.axes=FALSE,ylabs=NULL)  # Visualize the results in 2D using biplot
+
+# Then Visualize the results in 3D using biplot
+install.packages("rgl")
+library(rgl)
+plot3d(xx$x,xlab="PC1",ylab="PC2",zlab="PC3",type="h")
+spheres3d(xx$x, radius=7,col=rainbow(length(xx$x[,1])))
+grid3d(side="z", at=list(z=0))
+text3d(xx$x, text=rownames(xx$x), adj=1.3)
+
+**# #6. 差异分析,用limma包处理;并得到GO KEGG enrichment 结果；# #**
+setwd("c:/Users/lixia/Desktop/learn/workshop/NEW/")
+getwd()
+rm(list=ls())
+a<-read.table("2D3D treatment.csv",sep=",",header = T,stringsAsFactors = F)
+
+a2<-na.omit(a)
+###删除缺失值
+
+index<-duplicated(a2$Symbol)
+index
+a3<-a2[!index,]  
+###删除重复值
+  
+write.table(a3,file="a3.csv",sep = ",",quote = F)
+exprSet<-read.table("a3.csv", header=TRUE, sep=",",row.names = "Symbol")
+exprSet2<-exprSet[,2:5] ###注意此处为[]
+
+
+##制作表达矩阵
+group_list<-read.table("2D3D group.csv",header=TRUE, sep=",")
+group_list2<-group_list$System
+
+
+library(humanid)
+library(limma)
+
+DEG <- do_DEG_2groups(prefix='2D3D',
+                      exprSet=exprSet2 ,
+                      group_list=group_list2,
+                      method='limma')
+
+EG2 <- DEG[order(DEG$P.Val),]  ###排序
+
+write.table(EG2,file="2D3D limma.xls", sep="\t",quote=F)
+sum(DEG$P.Value < 0.05, na.rm=TRUE) ###统计符合条件的gene个数
+
+
+DEG$symbol <- rownames(DEG)  #无此命立，则出现“no lines available in input”错误
+
+format_DEG(DEG,prefix='2D3Dlimma',GOstats = T)
+
+createGSEAinput(prefix='2D3Dlimma2',exprSet2,group_list2)
+
+### QCexpressionMatrix() 失败。。。
+
+
+**7. 选取差异基因 与 可视化（火山图的画法。。。）**
+
+logFoldChange=0.45
+adjustP=0.2
+
+allDiff=topTable(fit2,adjust='fdr',number=200000)
+write.table(allDiff,file="limmaTab.xls",sep="\t",quote=F)
+
+#write table
+diffSig <- allDiff[with(allDiff, (abs(logFC)>logFoldChange & adj.P.Val < adjustP )), ]
+write.table(diffSig,file="diff.xls",sep="\t",quote=F)
+
+diffUp <- allDiff[with(allDiff, (logFC>logFoldChange & adj.P.Val < adjustP )), ]
+write.table(diffUp,file="up.xls",sep="\t",quote=F)
+
+diffDown <- allDiff[with(allDiff, (logFC<(-logFoldChange) & adj.P.Val < adjustP )), ]
+write.table(diffDown,file="down.xls",sep="\t",quote=F)
+
+##火山图的画法 （volcano）
+pdf(file="vol.pdf")
+xMax=max(-log10(allDiff$adj.P.Val))   ####x 全部为正值
+yMax=max(abs(allDiff$logFC))  ####y上调为正，下调为负
+
+plot(-log10(allDiff$adj.P.Val), allDiff$logFC, xlab="-log10(adj.P.Val)",ylab="logFC",
+     main="Volcano", xlim=c(0,xMax),ylim=c(-yMax,yMax),yaxs="i",pch=20, cex=0.4)
+
+##上调基因
+diffSub=subset(allDiff, adj.P.Val<adjustP & logFC>logFoldChange)
+points(-log10(diffSub$adj.P.Val), diffSub$logFC, pch=20, col="red",cex=0.4)
+
+##下调基因
+diffSub=subset(allDiff, adj.P.Val<adjustP & logFC<(-logFoldChange))
+points(-log10(diffSub$adj.P.Val), diffSub$logFC, pch=20, col="green",cex=0.4)
+
+abline(h=0,lty=2,lwd=3)
+dev.off()
