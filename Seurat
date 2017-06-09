@@ -1,0 +1,108 @@
+##Seurat 处理C1数据
+
+setwd("c:/Users/Administrator/Desktop/重点专项/")
+dir()
+rm(list=ls())
+dev.off()
+library(Seurat)
+library(dplyr)
+library(Matrix)
+
+pbmc.data<-read.table("cart.txt",header = T,row.names = 1,sep="\t")
+
+pbmc <- new("seurat", raw.data = pbmc.data)
+pbmc <- Setup(pbmc, min.cells = 3, min.genes = 200, do.logNormalize = T, total.expr = 1e4, project = "Zhouxia")
+
+pbmc <- MeanVarPlot(pbmc ,fxn.x = expMean, fxn.y = logVarDivMean, x.low.cutoff = 0.0125, x.high.cutoff = 3, y.cutoff = 0.5, do.contour = F)
+length(pbmc@var.genes)
+
+##pca
+pbmc <- PCA(pbmc, pc.genes = pbmc@var.genes, do.print = TRUE, pcs.print = 5, genes.print = 5)
+pbmc <- ProjectPCA(pbmc)
+PrintPCA(pbmc, pcs.print = 1:5, genes.print = 5, use.full = TRUE)
+VizPCA(pbmc, 1:2)
+PCAPlot(pbmc, 1, 2,pt.size=3)
+PCAPlot(pbmc, 2, 3)
+
+PCHeatmap(pbmc, pc.use = 1, cells.use = 50, do.balanced = TRUE)
+PCHeatmap(pbmc, pc.use = 2, cells.use = 50, do.balanced = TRUE)
+#PCHeatmap(pbmc, pc.use = 1, cells.use = 50, do.balanced = T,label.columns = FALSE)
+
+
+pbmc <- FindClusters(pbmc, pc.use = 1:10, resolution = 0.6, print.output = 0, save.SNN = T)
+              
+pbmc <- RunTSNE(pbmc, dims.use = 1:10, do.fast = T)
+TSNEPlot(pbmc,pt.size=3)
+
+##find subtype
+pbmc@ident
+x<-as.data.frame(pbmc@ident)
+gene<-as.data.frame(row.names(x))
+yy<-data.frame(gene,x)
+aa<-as.data.frame(yy[yy$pbmc.ident=="1",])
+write.csv(x,"all_samples_group6.csv")
+
+##draw pictures
+current.cluster.ids <- c(0, 1, 2, 3, 4, 5)
+new.cluster.ids <- c("P1_BR","P2P3_R1", "P2P3_R2","P1_BR_P2P3_R1","P1_BR_P2P3_R2","P2P3_B3")
+pbmc@ident <- plyr::mapvalues(pbmc@ident, from = current.cluster.ids, to = new.cluster.ids)
+TSNEPlot(pbmc, do.label = T, pt.size = 3)
+
+#修改ID
+current.cluster.ids <- c("P1_BR","P2P3_R1", "P2P3_R2","P1_BR_P2P3_R1","P1_BR_P2P3_R2","P2P3_B3")
+new.cluster.ids <- c("P1_BR","P2P3_R1", "P2P3_R2","P1_BR_P2P3_R1","P1_BR_P2P3_R2","P2P3_R3")
+pbmc@ident <- plyr::mapvalues(pbmc@ident, from = current.cluster.ids, to = new.cluster.ids)
+TSNEPlot(pbmc, do.label = T, pt.size = 3)
+
+##before analysis
+VlnPlot(pbmc, "CD19")
+VlnPlot(pbmc, c("CD44","ITGA4","CD59", "SERPINE1"))
+
+##summary
+VlnPlot(pbmc, c("PTPRD","PTPN13","DMD","CDH13","IL1RAPL1", "PTMA","CD74","EEF1A1","MALAT1"))
+VlnPlot(pbmc, c("KLF6","HLA-DRA","TPT1","TCL1A","EZR","ATP5B","CD34","PAX5","MME"))
+VlnPlot(pbmc,c("ACTB","GAPDH"))
+
+FeaturePlot(pbmc, "CD19",cols.use = c("grey","blue"))
+FeaturePlot(pbmc, c("CD19","MME"),cols.use = c("grey","red"),pt.size=2)
+TSNEPlot(pbmc, do.label = F, pt.size = 3)
+save(pbmc, file = "cart.Robj")      
+
+##find marks
+cluster1.markers <- FindMarkers(pbmc, ident.1 = "P1_BR", min.pct = 0.25)
+print(head(cluster1.markers, 10))
+VlnPlot(pbmc,c("DAD1","NEGR1","TCF4","RNF220"))
+
+cluster2.markers <- FindMarkers(pbmc, ident.1 = "P2P3_R1", min.pct = 0.25)
+print(head(cluster2.markers, 10))
+VlnPlot(pbmc,c("HBD","PCDH9","MT-ATP6","PLCB1"))
+
+cluster3.markers <- FindMarkers(pbmc, ident.1 = "P2P3_R2", min.pct = 0.25)
+print(head(cluster3.markers, 10))
+VlnPlot(pbmc,c("AKAP12","MME","NFKBIA","FBLN7"))
+
+cluster4.markers <- FindMarkers(pbmc, ident.1 = "P1_BR_P2P3_R1", min.pct = 0.25)
+print(head(cluster4.markers, 10))
+VlnPlot(pbmc,c("PTMA","CD74","EEF1A1","MALAT1"))
+
+cluster5.markers <- FindMarkers(pbmc, ident.1 = "P1_BR_P2P3_R2", min.pct = 0.25)
+print(head(cluster5.markers, 10))
+VlnPlot(pbmc,c("DLG2","GRID2","EYS","HMGA2"))
+
+cluster6.markers <- FindMarkers(pbmc, ident.1 = "P2P3_R3", min.pct = 0.25)
+print(head(cluster6.markers, 10))
+VlnPlot(pbmc,c("PTMA","CD74","CD34","CTR9"))
+
+FeaturePlot(pbmc, c("PCDH9"),cols.use = c("grey","blue"))
+FeaturePlot(pbmc, c("DAD1","NEGR1","RNF220","NFKBIA","AKAP12","DMD","PTPRD","PTPN13","CD34"),cols.use = c("grey","blue"))
+
+
+##
+pbmc.markers <- FindAllMarkers(pbmc, only.pos = TRUE, min.pct = 0.25, thresh.use = 0.25)
+pbmc.markers %>% group_by(cluster) %>% top_n(2, avg_diff)
+pbmc.markers %>% group_by(cluster) %>% top_n(8, avg_diff) -> top8
+DoHeatmap(pbmc, genes.use = top8$gene, order.by.ident = TRUE, slim.col.label = T, remove.key = TRUE)
+??DoHeatmap
+
+##do.return = TRUE 为生成表格
+#a<-DoHeatmap(pbmc, genes.use = top8$gene, order.by.ident = TRUE, slim.col.label = T, remove.key = TRUE, do.return = TRUE)
