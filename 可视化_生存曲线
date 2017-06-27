@@ -1,0 +1,49 @@
+#生存曲线的画法
+
+R中的操作：
+rm(list=ls())
+##安装包
+install.packages("cmprsk")
+install.packages("splines")
+install.packages("survival")
+install.packages("foreign")
+
+#加载包
+library(foreign)
+library(splines)
+library(survival)
+library(cmprsk)
+
+#处理数据
+bmt=read.spss("bmt.sav",to.data.frame=TRUE)
+attach(bmt)
+dis=factor(dis,levels=c(0,1),labels=c("chemotherapy","transplantation"))
+
+x<-cuminc(ftime,status,dis)
+x
+timepoints(x,c(6,12,24,36,48))
+plot(x,xlab="Months",ylab="Cumulative incidence Rate")
+
+
+#画图
+dev.off()
+plot.new()
+plot(x$`transplantation 2`$time, x$`transplantation 2`$est, type="s", lty = 1 ,ylim =c(0.0, 1.0), xlab ="生存时间(月)", ylab ="累积发生率", lwd = 3,bty="l")
+lines(x$`chemotherapy 2`$time, x$`chemotherapy 2`$est, type ="s", lty = 2, lwd = 3)
+legend(-1, 1.1, box.lty=0, c( "transplantion2","chemotherapy2") ,lty = 1:2,lwd = 3,border = "red")
+
+##备注
+##部分原始数据如下：
+
+dis ftime status
+0	14	2
+0	12	2
+0	27	2
+0	37	2
+0	13	2
+0	10	0
+0	10	0
+0	17	2
+0	17	2
+0	18	2
+0	14	1
