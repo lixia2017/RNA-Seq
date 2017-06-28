@@ -1,0 +1,53 @@
+rm(list = ls())
+data(wine)
+wine
+
+wine.pca <- prcomp(wine, scale. = TRUE)
+
+ggbiplot(wine.pca, obs.scale = 1, var.scale = 1,
+         groups = wine.class, ellipse = TRUE, circle = TRUE) +
+  scale_color_discrete(name = '') +
+  theme(legend.direction = 'horizontal', legend.position = 'top')
+
+
+
+##自己数据处理
+mydata<-read.table("R_analysis_lx_dinggao.csv", header=TRUE, row.names=1, sep = ",") 行是基因 列是样品名
+mydata2 <- t(mydata)  ##转置
+tumor <- as.data.frame(mydata2)
+tumor.class = c(rep("ES",11),rep("FL",24),rep("BM",23),rep("T",29)) 
+
+###
+tumor.pca <- prcomp(tumor, scale. = TRUE)
+
+ggbiplot(tumor.pca, obs.scale = 1, var.scale = 1,
+         groups = tumor.class, ellipse = TRUE, circle = TRUE, var.axes = F, ellipse.prob = 0.8) +
+  scale_color_discrete(name = '') + geom_jitter(size=2) + geom_jitter(aes(color=tumor.class))+
+  theme(legend.direction = 'horizontal', legend.position = 'top')
+
+##参数解释：
+https://www.rdocumentation.org/packages/ggbiplot/versions/0.55/topics/ggbiplot
+
+Arguments
+pcobj
+an object returned by prcomp() or princomp()
+choices
+which PCs to plot
+scale
+covariance biplot (scale = 1), form biplot (scale = 0). When scale = 1, the inner product between the variables approximates the covariance and the distance between the points approximates the Mahalanobis distance.
+obs.scale
+scale factor to apply to observations
+var.scale
+scale factor to apply to variables
+。。。。。。
+
+#点的大小
+ geom_jitter(size=2) 
+ 
+ 
+ #点的颜色
+ geom_jitter(aes(color=tumor.class))
+ 
+ 
+ #主题
+ theme(legend.direction = 'horizontal', legend.position = 'top')
