@@ -1,0 +1,37 @@
+##学习
+library(vioplot)
+mtcars
+
+x1 <- mtcars$mpg[mtcars$cyl==4]
+x2 <- mtcars$mpg[mtcars$cyl==6]
+x3 <- mtcars$mpg[mtcars$cyl==8]
+vioplot(x1, x2, x3,
+        names=c("4 cyl", "6 cyl", "8 cyl"),
+        col="red")
+title("Violin Plots of Miles Per Gallon", ylab="Miles Per Gallon",
+      xlab="Number of Cylinders")
+
+
+##自己数据
+getwd()
+
+a<-read.csv("R_analysis_lx_dinggao.csv",header = T,row.names = 1)
+head(a)
+
+y1 <- as.numeric(a[rownames(a)=="GAPDH",])
+y2 <- as.numeric(a[rownames(a)=="LMO2",])
+y3 <- as.numeric(a[rownames(a)=="Gata2",])
+y4 <- as.numeric(a[rownames(a)=="CD47",])
+y5 <- as.numeric(a[rownames(a)=="HOXA9",])
+y6 <- as.numeric(a[rownames(a)=="Gata1",])
+y7 <- as.numeric(a[rownames(a)=="CD31",])
+y8 <- as.numeric(a[rownames(a)=="SOX4",])
+y9 <- as.numeric(a[rownames(a)=="CD71",])
+y10 <- as.numeric(a[rownames(a)=="Bmi1",])
+y11 <- as.numeric(a[rownames(a)=="IL7R",])
+
+vioplot(y1, y2, y3,y4,y5,y6,y7,y8,y9,y10,y11,
+        names=c("GAPDH","LMO2", "GATA2","CD47","HOXA9","GATA1","CD31","SOX4","CD71","Bmi1","IL7R"),
+        col="red")
+title("Related gene expression in four groups", ylab="RNA expression levels (34-Ct)",
+      xlab="Gene name")
