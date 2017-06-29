@@ -1,3 +1,9 @@
+#1 若数据分析出现null报错，可用na.omit删除
+
+#2 如读取数据出现第XX行没有元素，可用fill=TRUE，解决
+
+#3 。。。
+
 ##Seurat 处理C1数据
 
 setwd("c:/Users/Administrator/Desktop/重点专项/")
