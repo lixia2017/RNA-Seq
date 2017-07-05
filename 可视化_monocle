@@ -1,0 +1,142 @@
+Clustering, differential expression, and trajectory analysis for single- cell RNA-Seq
+
+setwd("c:/Users/Administrator/Desktop/lou/monocle/")
+source("https://bioconductor.org/biocLite.R")
+options(BioC_mirror="http://mirrors.ustc.edu.cn/bioc/")
+biocLite("monocle")
+library(monocle)
+library(reshape2)
+dir()
+
+## filter cell
+myraw <- read.table("patient_all3_2.txt")
+myraw_s <- myraw[,1:589]
+a <- colnames(myraw_s[,colSums(myraw_s) > 40000])
+length(a)
+[1] 309
+
+mydata <- read.table("patient_all3_2_TPM_orderByChrPos_uniq.txt")
+head(mydata[,1:4])
+
+#Sb_01_ROW04 Sb_01_ROW05 Sb_01_ROW06 Sb_01_ROW09
+#RP11-34P13.7           0           0           0           0
+#FO538757.1             0           0           0           0
+#AP006222.2             0           0           0           0
+
+mydata_s <- mydata[,1:589]
+head(mydata_s[,1:5])
+#Sb_01_ROW04 Sb_01_ROW05 Sb_01_ROW06 Sb_01_ROW09 Sb_01_ROW12
+#RP11-34P13.7           0           0           0           0    3.158428
+#FO538757.1             0           0           0           0    0.000000
+#AP006222.2             0           0           0           0   12.390295
+#RP5-857K21.4           0           0           0           0    2.901648
+#LINC01128              0           0           0           0    0.000000
+#RP11-54O7.16           0           0           0           0    0.000000
+mydata_s2 <- mydata_s[,a]
+
+gene_annotation <- data.frame(row.names=rownames(mydata_s2), gene_short_name = rownames(mydata_s2),biotype="protein_coding")
+head(gene_annotation)
+# #gene_short_name        biotype
+# RP11-34P13.7    RP11-34P13.7 protein_coding
+# FO538757.1        FO538757.1 protein_coding
+# AP006222.2        AP006222.2 protein_coding
+# RP5-857K21.4    RP5-857K21.4 protein_coding
+# LINC01128          LINC01128 protein_coding
+# RP11-54O7.16    RP11-54O7.16 protein_coding
+
+sample_sheet <- data.frame(row.names=colnames(mydata_s2), source = colnames(mydata_s2),state = c(rep("befor",113), rep("after",196)))
+head(sample_sheet)
+# source state
+# Sb_01_ROW04 Sb_01_ROW04 befor
+# Sb_01_ROW05 Sb_01_ROW05 befor
+# Sb_01_ROW06 Sb_01_ROW06 befor
+# Sb_01_ROW09 Sb_01_ROW09 befor
+# Sb_01_ROW12 Sb_01_ROW12 befor
+# Sb_01_ROW13 Sb_01_ROW13 befor
+nrow(sample_sheet)
+[1] 309
+
+pd <- new("AnnotatedDataFrame", data = sample_sheet)
+fd <- new("AnnotatedDataFrame", data = gene_annotation)
+HSMY <- newCellDataSet(as.matrix(mydata_s2), phenoData = pd, featureData = fd)
+HSMY <- detectGenes(HSMY, min_expr = 1)
+print(head(fData(HSMY)))
+# gene_short_name        biotype num_cells_expressed
+# RP11-34P13.7    RP11-34P13.7 protein_coding                   5
+# FO538757.1        FO538757.1 protein_coding                  15
+# AP006222.2        AP006222.2 protein_coding                   6
+# RP5-857K21.4    RP5-857K21.4 protein_coding                   4
+# LINC01128          LINC01128 protein_coding                  13
+# RP11-54O7.16    RP11-54O7.16 protein_coding                   2
+
+expressed_genes <- row.names(subset(fData(HSMY), num_cells_expressed >= 40))
+length(expressed_genes)
+# [1] 3656
+print(head(pData(HSMY)))
+
+# source state Size_Factor num_genes_expressed
+# Sb_01_ROW04 Sb_01_ROW04 befor          NA                 301
+# Sb_01_ROW12 Sb_01_ROW12 befor          NA                4417
+# Sb_01_ROW17 Sb_01_ROW17 befor          NA                2645
+# Sb_01_ROW21 Sb_01_ROW21 befor          NA                3261
+# Sb_01_ROW25 Sb_01_ROW25 befor          NA                 772
+# Sb_01_ROW26 Sb_01_ROW26 befor          NA                 768
+
+L <- log(exprs(HSMY[expressed_genes,]))
+head(L[,1:5])
+# Sb_01_ROW04 Sb_01_ROW12 Sb_01_ROW17 Sb_01_ROW21 Sb_01_ROW25
+# ISG15           -Inf    3.734656        -Inf        -Inf        -Inf
+# UBE2J2          -Inf    1.256210        -Inf        -Inf        -Inf
+# AURKAIP1        -Inf        -Inf        -Inf        -Inf        -Inf
+# CCNL2           -Inf        -Inf        -Inf        -Inf        -Inf
+# SSU72           -Inf        -Inf        -Inf        -Inf   0.5760293
+# CDK11B          -Inf        -Inf        -Inf    5.766534        -Inf
+L[is.infinite(L)] <- log(10^-3)
+head(L[,1:5])
+# Sb_01_ROW04 Sb_01_ROW12 Sb_01_ROW17 Sb_01_ROW21 Sb_01_ROW25
+# ISG15      -6.907755    3.734656   -6.907755   -6.907755  -6.9077553
+# UBE2J2     -6.907755    1.256210   -6.907755   -6.907755  -6.9077553
+# AURKAIP1   -6.907755   -6.907755   -6.907755   -6.907755  -6.9077553
+# CCNL2      -6.907755   -6.907755   -6.907755   -6.907755  -6.9077553
+# SSU72      -6.907755   -6.907755   -6.907755   -6.907755   0.5760293
+melted_dens_df <- melt(t(scale(t(L))))
+??melt
+
+head(melted_dens_df)
+# Var1        Var2      value
+# 1    ISG15 Sb_01_ROW04 -0.5429312
+# 2   UBE2J2 Sb_01_ROW04 -0.4120066
+# 3 AURKAIP1 Sb_01_ROW04 -0.7943053
+# 4    CCNL2 Sb_01_ROW04 -0.3876273
+qplot(value, geom="density", data=melted_dens_df)
+qplot(value, geom="density", data=melted_dens_df) + stat_function(fun = dnorm, size=0.5, color='red')
+
+HSMY <- estimateSizeFactors(HSMY)
+
+
+HSMY <- setOrderingFilter(HSMY, expressed_genes)
+HSMY <- estimateDispersions(HSMY) ##Error
+
+# disp_table <- dispersionTable(HSMM)
+
+HSMM <- reduceDimension(HSMY, use_irlba=FALSE)
+
+
+# HSMY <- reduceDimension(HSMY, use_irlba=FALSE)
+HSMY <- orderCells(HSMY, num_paths=2, reverse=TRUE)
+plot_spanning_tree(HSMY)
+
+diff_test_res <- differentialGeneTest(HSMY[expressed_genes,], fullModelFormulaStr="expression~Media")
+head(diff_test_res)
+# status           family pval qval gene_short_name        biotype num_cells_expressed
+# A2MP1   FAIL negbinomial.size    1    1           A2MP1 protein_coding                 165
+# AAED1   FAIL negbinomial.size    1    1           AAED1 protein_coding                  40
+# AAK1    FAIL negbinomial.size    1    1            AAK1 protein_coding                  61
+# AAMP    FAIL negbinomial.size    1    1            AAMP protein_coding                  44
+# AAR2    FAIL negbinomial.size    1    1            AAR2 protein_coding                  54
+# AARS    FAIL negbinomial.size    1    1            AARS protein_coding                  42
+
+HSMM <- setOrderingFilter(HSMM, expressed_genes)
+HSMM <- reduceDimension(HSMM, use_irlba=FALSE)
+HSMM <- orderCells(HSMM, num_paths=2, reverse=TRUE)
+plot_spanning_tree(HSMY,color_by=pData(HSMY)$state)
