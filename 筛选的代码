@@ -6,3 +6,6 @@ mydata2 <- mydata[rowMeans(mydata[,1:15]) != 0 & rowSums(!!mydata[,1:15]) > 7,]
 a <- colnames(myraw_s[,colSums(myraw_s) > 40000])
 mydata_s2 <- mydata_s[,a]
 
+##增加数据框，以下为增加三列！！！
+sample_sheet <- data.frame(row.names=colnames(mydata_s2), source = colnames(mydata_s2),state = c(rep("befor",113), rep("after",196)))
+head(sample_sheet)
