@@ -23,3 +23,20 @@ max(dddd)
 ###筛选符合条件的基因（如每个样本中基因个数大于2000的基因）
 xxxx<-as.data.frame(dddd)
 yy<-d[,which(xxxx$dddd>2000)]
+
+
+####zhouxia
+zx<-read.table("zhouxia_800cells_dg.txt",header = T,row.names = 1,sep="\t")
+zz<-zx[rowSums(!!zx[,1:800])>20,]
+dddd <- colSums(!!zz[,1:800])
+barplot(dddd)
+boxplot(dddd)
+mean(dddd)
+
+xxxx<-as.data.frame(dddd)
+yy<-d[,which(xxxx$dddd>2000)]
+
+bb<-xxxx[1:400,]
+mean(bb)
+aa<-xxxx[401:800,]
+mean(aa)
