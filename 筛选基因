@@ -1,0 +1,20 @@
+c<-b[rowMeans(b[,1:800]) !=0,] ###去除假基因 
+d<-b[rowSums(!!b[,1:800])>20,]
+
+head(b)
+
+bbbb <- colSums(!!b[,1:800])
+dddd <- colSums(!!d[,1:800])
+barplot(dddd)
+boxplot(dddd)
+mean(dddd)
+
+xxxx<-as.data.frame(dddd)
+length(which(xxxx$dddd>2000))
+
+length(which(dddd>2000))
+length(which(dddd<2000))
+length(which(dddd==2000))
+
+min(dddd)
+max(dddd)
