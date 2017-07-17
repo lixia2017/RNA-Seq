@@ -1,9 +1,9 @@
+bbbb <- colSums(!!b[,1:800])
+
 c<-b[rowMeans(b[,1:800]) !=0,] ###去除假基因 
 d<-b[rowSums(!!b[,1:800])>20,]
-
 head(b)
 
-bbbb <- colSums(!!b[,1:800])
 dddd <- colSums(!!d[,1:800])
 barplot(dddd)
 boxplot(dddd)
@@ -18,3 +18,8 @@ length(which(dddd==2000))
 
 min(dddd)
 max(dddd)
+
+
+###筛选符合条件的基因（如每个样本中基因个数大于2000的基因）
+xxxx<-as.data.frame(dddd)
+yy<-d[,which(xxxx$dddd>2000)]
