@@ -40,3 +40,31 @@ bb<-xxxx[1:400,]
 mean(bb)
 aa<-xxxx[401:800,]
 mean(aa)
+
+
+## DESeq 标准化
+source("http://bioconductor.org/biocLite.R")
+biocLite("RSQLite")
+biocLite("digest")
+biocLite("DESeq2")
+options(BioC_mirror="http://mirrors.ustc.edu.cn/bioc/")
+library(DESeq2)
+dds <- DESeqDataSetFromMatrix(countData = yy,
+                              colData = colData,
+                              design = ~ group_list)
+
+
+dds2 <- DESeq(dds)  
+resultsNames(dds2)
+rld <- rlogTransformation(dds2) 
+exprSet_new=assay(rld)
+
+hist(yy)
+hist(exprSet_new)
+
+###scale 
+zyc_b_new<-scale(zyc_b)
+hist(zyc_b_new[rownames(zyc_b_new)==GAPDH,])
+hist(zyc_b_new[rownames(zyc_b_new)=="GAPDH",])
+boxplot(zyc_b_new[rownames(zyc_b_new)=="GAPDH",])
+barplot(zyc_b_new[rownames(zyc_b_new)=="GAPDH",])
