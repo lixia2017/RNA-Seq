@@ -26,3 +26,21 @@ nohup samtools view K27M.Nsort.bam | ~/.local/bin/htseq-count -f sam -s no -i ge
 nohup samtools view WT.Nsort.bam | ~/.local/bin/htseq-count -f sam -s no -i gene_name - ~/reference/gtf/gencode/gencode.v25lift37.annotation.gtf 1>WT.geneCounts 2>WT.HTseq.log &
 
 ##nohup 后台运行程序！！！
+
+
+###
+代码2
+
+官方的Usage：htseq-count [options] <sam_file> <gff_file>
+
+htseq-count case1.sam   /home/jmzeng/ref-database/hg19.gtf
+多个可以批处理如
+for i in *sam
+do
+echo$i
+htseq-count $i hg.gtf >$i.count
+done
+
+具体的可以以第一个为准！！！
+
+
