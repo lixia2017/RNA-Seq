@@ -1,0 +1,3 @@
+for ((i=679;i<=999;i++)); 
+do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP044/SRP044256/SRR1511$i/SRR1511$i.sra;
+done
