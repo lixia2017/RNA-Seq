@@ -1,0 +1,15 @@
+目的：gene name 中有多个名字，用逗号隔开。此时可用如下代码解决。。。
+
+代码:
+hsc$Name2<-unlist(lapply(hsc$Name,function(x){
+  tmp <- unlist(strsplit(as.character(x),' '))
+  tmp<-strsplit(tmp,',')[[1]][1]
+}))  ##体会[1]与[[1]]的区别
+
+详细解释：
+1. 直接使用split函数得到的结果是一个列表，如果希望得到一个向量，可以使用unlist函数。
+2. lapply 函数为一个循环。。。
+
+3. 利用了strsplit进行了两次切割，第一次为‘ ’  第二次为‘，’   
+4. [[1]]表示从此处开始，[1] 和[2] 表示结束位置
+5 使用两个反斜杠"\\"对通配符“.”进行转
