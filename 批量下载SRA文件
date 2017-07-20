@@ -1,7 +1,11 @@
+2017  Genome research数据
+GSE
+
 for ((i=679;i<=999;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP044/SRP044256/SRR1511$i/SRR1511$i.sra;done
+#####
+
 
 2016 批量下载刘兵组数据:
-
 群体数据（35个）：GSE66954
 for ((i=45;i<=89;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP056/SRP056212/SRR19168$i/SRR19168$i.sra;done
 
@@ -15,3 +19,9 @@ for ((i=583;i<=712;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-in
 
 第二部分
 for ((i=738;i<=871;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP056/SRP056386/SRR2508$i/SRR2508$i.sra;done
+
+
+其他可能有用数据
+GSE60808
+
+	Jarid2 regulates hematopoietic stem cell function by acting with Polycomb Repressive Complex 2  BLOOD
