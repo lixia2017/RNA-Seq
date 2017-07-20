@@ -1,1 +1,17 @@
 for ((i=679;i<=999;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP044/SRP044256/SRR1511$i/SRR1511$i.sra;done
+
+2016 批量下载刘兵组数据:
+
+群体数据（35个）：GSE66954
+for ((i=45;i<=89;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP056/SRP056212/SRR19168$i/SRR19168$i.sra;done
+
+Tracing the formation of hematopoietic stem cells in mouse embryos by single-cell functional and RNA-Seq analyses [10-cell]
+###########
+
+
+单细胞数据（181）：GSE67120
+第一部分
+for ((i=583;i<=712;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP056/SRP056386/SRR1922$i/SRR1922$i.sra;done
+
+第二部分
+for ((i=738;i<=871;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP056/SRP056386/SRR2508$i/SRR2508$i.sra;done
