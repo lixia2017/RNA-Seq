@@ -1,0 +1,33 @@
+目标：计算TPM值的方法...
+
+参考链接：https://github.com/bli25ucb/RSEM_tutorial
+
+1. 安装软件；
+
+In this tutorial, we align reads with Bowtie 2. We will show you how to install Bowtie 2 and RSEM step by step.
+
+First, clone the following git repository to your favorite location:
+
+git clone git@github.com:bli25ucb/RSEM_tutorial.git $(your_favorite_location)
+cd $(your_favorite_location)
+You will find source codes for Bowtie 2 and RSEM in the software subdirectory. Type commands below to install them:
+
+cd software
+unzip bowtie2-2.2.6-source.zip
+cd bowtie2-2.2.6
+make -j 8
+cd ..
+tar -xzf RSEM-1.2.25.tar.gz
+cd RSEM-1.2.25
+make -j 8
+make ebseq
+cd ..
+cd ..
+
+2. 建立索引
+
+software/RSEM-1.2.25/rsem-prepare-reference --gtf ref/Mus_musculus.GRCm38.82.chr.gtf \
+					     --bowtie2 --bowtie2-path software/bowtie2-2.2.6 \
+   				     ref/Mus_musculus.GRCm38.dna.toplevel.fa ref/mouse_ref
+               
+##其中 \ 代表换行
