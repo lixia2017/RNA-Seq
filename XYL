@@ -38,3 +38,46 @@ yyy<-na.omit(xxx)
 
 write.csv(xxx,"dinggao_singal.csv")
 write.csv(yyy,"dinggao_unique_singal.csv")
+
+
+##发现以上版本为全部自己写的，原创代码，可以借助目前的一些包，实现高效的ID转换
+
+rm(list = ls())
+setwd("c:/Users/Administrator/Desktop/HSCs/human hscs/2015 CDK6/")
+dir()
+
+hsc<-read.table("GSE58299_non_normalized.txt",header = T,sep = "\t",row.names = 1)
+colnames(hsc)
+dim(hsc)
+#矩阵hsc，取基数行
+# 打出一个奇数列1,3,5,...到nrow(m)
+del <- seq(1, ncol(hsc), by = 2)
+del
+# 删掉用减号
+x<-hsc[,del]
+
+#ID转换
+myprobe<-rownames(x)
+
+library("illuminaHumanv4.db")
+ls("package:illuminaHumanv4.db")
+
+probe2entrezID=toTable(illuminaHumanv4ENTREZID)
+# head(probe2entrezID)
+probe2symbol=toTable(illuminaHumanv4SYMBOL)
+probe2genename=toTable(illuminaHumanv4GENENAME)  #全称
+
+a<-probe2symbol[match(myprobe,probe2symbol$probe_id),]
+aa<-na.omit(a)
+
+y<-x
+y$AID<-rownames(x)
+aaa<-merge(y,aa,by.x=37,by.y=1,all=T)
+write.csv(aaa,"HSC_dinggao.csv")
+
+####上面内容很重要！！！
+
+
+
+
+
