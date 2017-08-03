@@ -78,6 +78,21 @@ write.csv(aaa,"HSC_dinggao.csv")
 ####上面内容很重要！！！
 
 
+rm(list =ls())
+mydata<-read.table("111.txt", header=TRUE, row.names = 1,sep = "\t") #行是基因 列是样品名
+mydata2 <- t(mydata)  ##转置
+tumor <- as.data.frame(mydata2)
+colnames(tumor)
 
+tumor.class = c(2,3,1,1,3,2,1,2,3,4,6,5,5,4,6,6,5,4,9,8,7,7,8,9,8,7,9,12,11,10,11,12,10,10,11,12)
 
+library(ggbiplot)
+###
+tumor.pca <- prcomp(tumor, scale. = TRUE)
+
+ggbiplot(tumor.pca, obs.scale = 1, var.scale = 1,groups = tumor.class, ellipse = TRUE, circle = TRUE, var.axes = F, ellipse.prob = 0.8) +
+  scale_color_discrete(name = '') + geom_jitter(size=5) + geom_jitter(aes(color=tumor.class))+
+  theme(legend.direction = 'horizontal', legend.position = 'top')
+
+未成功！明天再试下！
 
