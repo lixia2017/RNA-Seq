@@ -1,0 +1,13 @@
+#矩阵hsc，删除基数行
+# 打出一个奇数列1,3,5,...到nrow(m)
+del <- seq(1, ncol(hsc), by = 2)
+del
+# 删掉用减号
+m[-del, ]
+
+同理偶数列
+del2 <- seq(2, ncol(hsc), by = 2)
+del2
+
+基数行
+del <- seq(1, nrow(hsc), by = 2)
