@@ -1,0 +1,40 @@
+##CDK6 表达矩阵获取，需下载注释文件。
+文章地址
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4359055/
+
+rm(list = ls())
+setwd("c:/Users/Administrator/Desktop/HSCs/human hscs/2015 CDK6/")
+dir()
+
+hsc<-read.table("GSE58299_non_normalized.txt",header = T,sep = "\t",row.names = 1)
+colnames(hsc)
+dim(hsc)
+
+
+#矩阵hsc，取基数行
+# 打出一个奇数列1,3,5,...到nrow(m)
+del <- seq(1, ncol(hsc), by = 2)
+del
+# 删掉用减号
+x<-hsc[,del]
+
+y<-read.table("GPL14951-11332_注释.txt",header = T,sep = "\t",fill = T) ##去掉行数不符合的行
+colnames(y)
+z<-y[,c(1,28)]
+
+hsc$ID<-rownames(hsc)
+
+write.csv(hsc,"hHSC_LT_ST_dinggao.csv")
+write.table(z,"anno.txt",sep = "\t")
+
+##将ID列提到第一例
+b<-read.table("hHSC_LT_ST_dinggao.csv",header = T,sep = ",")
+rownames(b)
+
+
+xxx<-merge(b,z,by=1,all=T)
+head(xxx)
+yyy<-na.omit(xxx)
+
+write.csv(xxx,"dinggao_singal.csv")
+write.csv(yyy,"dinggao_unique_singal.csv")
