@@ -1,0 +1,30 @@
+三个函数：
+全部大写
+upper
+
+全部小写
+lower
+
+首字母大写，其余小写。。
+proper
+
+
+###
+可在excel实现，通过拉取的模式，进行批量转换。
+
+附带一个merge命令：
+setwd("F:/xyl/20170804_XYL_群体2D3D/")
+dir()
+a<-read.csv("20170804_qunti_normalize_2d3d.csv")
+b<-a[,-2]
+
+c<-read.csv("stem cell gene.csv",header = F)
+
+d<-merge(b,c,by=1,all.y = T)
+
+e<-na.omit(d)
+
+f<-e[,-1]
+rownames(f)<-e$symbol
+library(pheatmap)
+pheatmap(f)
