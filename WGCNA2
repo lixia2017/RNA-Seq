@@ -1,0 +1,108 @@
+dev.off()
+rm(list=ls())
+setwd("/home/hcb-lab/桌面/xyl/wgcna/20_single_cells/")
+dir()
+###复制代码
+# 加权基因共表达网络分析（WGCNA）
+
+### 读入样本表达量以及形状数据
+library(WGCNA)
+datTraits <- read.csv("20cells_traits.csv", row.names = 1)
+a<-read.csv("20cells_normalize_blindF.csv",sep=",", row.names = 1)
+
+datExpr <- t(a)
+dim(datExpr)
+datTraits = datTraits[match(rownames(datExpr), rownames(datTraits)),]
+### 利用表达量数据对样本进行聚类分析
+Tree = hclust(dist(datExpr), method = "average")
+
+library(flashClust)
+Tree=flashClust(dist(datExpr), method = "average")  ##Try!
+
+### 将性状信息转化为颜色，
+traitColors = numbers2colors(datTraits, signed = FALSE)
+### 绘制树状图以及对应的性状热图
+plotDendroAndColors(Tree, traitColors, groupLabels = names(datTraits), main = " dendrogram and trait heatmap")
+
+### 表达网络拓扑结构的分析
+powers = c(c(1:10), seq(from = 12, to=20, by=2))
+### 选择合适的阈值参数（mean connectivity）
+sft = pickSoftThreshold(datExpr, powerVector = powers)
+plot(sft$fitIndices[,1], sft$fitIndices[,5])
+### 根据选择的阈值构建拓扑网络模型
+net = blockwiseModules(datExpr, power = 6, TOMType = "unsigned",maxBlockSize = 17000,reassignThreshold = 0,
+                       numericLabels = TRUE, mergeCutHeight = 0.25, pamRespectsDendro = FALSE,              	
+                       saveTOMs = TRUE, saveTOMFileBase = "femaleMouseTOM",verbose = 3)
+
+##exclude 1000gene ,so try mergeCutHeight=0
+
+# net = blockwiseModules(datExpr, power = 5, maxBlockSize = 20000,
+#                        TOMType = "unsigned",
+#                        reassignThreshold = 0, mergeCutHeight = 0.01,
+#                        numericLabels = TRUE, pamRespectsDendro = FALSE,
+#                        saveTOMs = TRUE,
+#                        saveTOMFileBase = "try_cutHeight",verbose = 3)
+
+# net = blockwiseModules(datExpr, power = 5, maxBlockSize = 20000,
+#                        TOMType = "unsigned", minModuleSize = 30,
+#                        reassignThreshold = 0, mergeCutHeight = 0.01,
+#                        numericLabels = TRUE, pamRespectsDendro = FALSE,
+#                        saveTOMs = TRUE,
+#                        saveTOMFileBase = "AS-green-FPKM-TOM",verbose = 3)
+
+
+
+### 将类别标签映射为颜色并绘制树状图
+mergedColors = labels2colors(net$colors)
+plotDendroAndColors(net$dendrograms[[1]], mergedColors[net$blockGenes[[1]]], "Module colors",                    
+                    addGuide = TRUE, dendroLabels = FALSE, autoColorHeight=FALSE, colorHeight = .1)
+
+geneTree = net$dendrograms[[1]]
+### 构建拓扑重叠矩阵计算基因距离
+moduleLabels = net$colors
+moduleColors = labels2colors(net$colors)
+# dissTOM = 1-TOMsimilarityFromExpr(datExpr, power = 5)
+dissTOM = 1-TOMsimilarityFromExpr(datExpr, power = 5,nThreads = 256) #尝试使用是8个线程 
+plotTOM = dissTOM^7
+# ###第一向量提升到第二向量的指数	
+# v <- c( 2,5.5,6)
+# t <- c(8, 3, 4)
+# print(v^t)
+# 它产生以下结果：
+# [1]  256.000  166.375 1296.000
+
+
+diag(plotTOM) = NA  ###gouzao构造对角矩阵
+TOMplot(plotTOM, geneTree, moduleColors)
+###
+dim(plotTOM)
+geneTree
+length(moduleColors)
+#
+
+### 挑选每个模块的特征基因
+MEs0 = moduleEigengenes(datExpr, moduleColors)$eigengenes
+MEs = orderMEs(MEs0)
+### 计算特征基因与性状之间的相关系数，p-value
+moduleTraitCor = cor(MEs, datTraits, use = "p")
+dim(moduleTraitCor)
+moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nrow(datExpr))
+dim(moduleTraitPvalue)
+
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(", signif(moduleTraitPvalue, 1), ")", sep = "")
+dim(textMatrix) = dim(moduleTraitCor)
+### 绘制特征基因与性状相关性的热图
+graphics.off()
+par(mar=c(3,5,3,3))
+labeledHeatmap(Matrix = moduleTraitCor, xLabels = names(datTraits), yLabels = names(MEs),               
+               ySymbols = names(MEs), colorLabels = FALSE, colors = greenWhiteRed(50), textMatrix = textMatrix,      
+               setStdMargins = FALSE, cex.text = 0.5, cex.lab.x = 0.8, 
+               zlim = c(-1,1), main = "Module-trait relationships")
+
+### 特征基因与性状之间的聚类分析
+insulin = as.data.frame(datTraits$Insulin_ug_l)
+names(insulin) = "insulin"
+MET = orderMEs(cbind(MEs, insulin))
+plotEigengeneNetworks(MET, "", marDendro = c(0,8,1,2), 
+                      marHeatmap = c(3,8,3,2), cex.lab = 0.8, 
+                      xLabelsAngle = 90)
