@@ -1,0 +1,6 @@
+下载sra数据
+
+
+
+转换sra为fastq
+ls *.sra|while read id;do(fastq-dump --split-3 --gzip $id);done
