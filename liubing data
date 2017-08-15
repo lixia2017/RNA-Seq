@@ -1,5 +1,10 @@
 下载sra数据
+2016 批量下载刘兵组数据:
+群体数据（35个）：GSE66954
+for ((i=45;i<=89;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP056/SRP056212/SRR19168$i/SRR19168$i.sra;done
 
+Tracing the formation of hematopoietic stem cells in mouse embryos by single-cell functional and RNA-Seq analyses [10-cell]
+###########
 
 
 转换sra为fastq
