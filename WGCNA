@@ -1,0 +1,122 @@
+  WGCNA 详解
+着测序价格下降，各位大牛们手头积累的测序数据越来越多，传统的两两比对分析不仅带来了复杂的比对组合，而且无法系统地反馈我们各样本基因之间的相互作用模式。这时候我们就不得不另辟蹊径，Weighted Gene Co-Expression Network Analysis(以下简称WGCNA)就是一个适合复杂样本的分析方法。
+ 
+WGCNA中文名译作加权关联网络分析，小R觉得这个翻译有点生硬，还是英文来得比较直接。它是一种从测序数据中挖掘模块(module)信息的算法。在该方法中module被定义为一组具有相似表达谱的基因， 如果某些基因在一个生理过程或不同组织中总是具有相类似的表达变化，那么我们有理由认为这些基因在功能上是相关的，可以把他们定义为一个模块(module)。这似乎与聚类分析所得到的结果有那么一点相似，但不同的是，WGCNA的聚类准则具有生物学意义，它是对基因间表达量的相关系数取n次幂，使得相关系数数值的分布逐渐符合无尺度分布，可以将基因按照表达模式进行分类，将模式相似的基因归为一个模块（module），而非常规的聚类方法，因此该方法所得出的结果具有更高的可信度。当基因module被定义出来后，我们可以利用这些结果做很多进一步的工作。
+ 
+在co-expression network中，每一个基因在一个特定时间或空间的表达情况被视做一个点(node)，为了得到基因间的关联情况，我们需要计算任何两个基因间的相关系数(Person Coefficient)，第i个基因和第j个基因的Person Coefficient，即两个基因的表达相似性。为了知道两个基因的表达谱是否具有相似性，需要人为规定一个阈值，只有当基因间的Person Coefficient达到这一阈值后(如0.8)我们才认为这两个基因是相似的，否则则不相似。但是这种分析方法存在一个很明显的局限，即我们没有理由认为Person Coefficient为0.8的两个基因与Coefficient为0.79的两个基因是有显著差别的，但是以上算法却无法避免这一处境，WGCNA采用了一种基于软阈值的判定方法很好地避免了这一问题。
+ 
+网络的数学名称是图，在图论中对于每一个节点有一个重要概念，即：度。一个点的度是指图中该点所关联的边数。
+
+ 
+ 
+Scale-free network具有这样的特点，即存在少数节点具有明显高于一般点的度，这些点被称为hub。由少数hub与其它节点关联，最终构成整个网络。这样的网络的节点度数与具有该度数的节点个数间服从power distribution。这为我们寻找最佳参数提供了理论依据。生物体选择scale-free network而不是random network是有它进化上的原因的，显然对于scale-free network，少数关键基因执行着主要功能，只要保证hub的完整性，整个生命体系的基本活动在一定刺激影响下将不会受到太大影响。
+ 
+前面已经讲过基因间的相关系数的计算了，计算完相关系数之后理论上可以将基因按照表达模式进行分类，将模式相似的基因归为一个模块。这样做有什么好处呢？ 上文中我们提到理论上表达模式相似的基因可能就会参与相似的通路，或有相似的功能。通过这样的分类，信息量就被简化了。原来是成千上万个基因，现在被分成了几十个模块。下图就是将基因分为不同模块的结果图，每种颜色都代表一个模块。
+
+ 
+将模块划分好之后，我们如何找到最为关键的那个模块呢？下面小R给大家提供3种研究策略。
+ 
+1.模块的功能富集
+ 
+对各个模块都进行 KEGG、GO等功能富集分析，找出与我们研究性状（比方说光合作用或形态建成等等）相关通路相关性最强的模块进行深入挖掘。
+ 
+2.模块与性状之间的相关性
+ 
+模块的本质上就是一群表达模式相似的基因的大集合。我们可以利用数学的方法，算出这群基因表达量的综合值来代表这个模块，将这个值叫做“模块特征值”。也可以这么理解，每个模块就是一个 “超级基因”，它的表达量是所有成员共同作用的结果。假设最初测序的样本是50只体重各异的小鼠， 而现在分析后得到30个“超级基因”，那么到底哪个“超级基因”值得我们后续研究呢？ 答案很简单，计算这些超级基因与体重之间的关系，找到相关性高的那个“超级基因”就是我们后续要重点研究的模块。
+ 
+3.模块与样本间的相关系数
+ 
+如果我们研究的不是单一性状那该如何分析呢？比如，草莓花发育的12个时期，6个不同的花组织。我想知道在每个时期每个组织中发挥作用的“超级基因”，那该如何下手呢？这个时候我们就需要计算每个模块的特征值与样本间的相关性，来研究每个模块最喜欢在哪个样本中表达。以下图为例，每一行代表不同的模块，每一列代表不同样本。相关性由低到高用由蓝到红的颜色来表示。从图中我们可以直观的看出每个模块和各个样品间的关联结果，比如Lightgreen和样品Anther_7-8相关性最强。
+
+ 
+通过以上三种策略，就可以保证找到与我们研究密切相关的模块，下一步，我们就要进入模块内部一探究竟了。上文中我们介绍了无尺度网络，它对于我们挖掘模块的关键信息有两个价值：
+1.找到模块的核心基因（上文提到的hub）
+ 
+模块中的各基因成员在关系上并非是平等的。我们把处于调控网络中心的基因称为核心基因（hub gene），这类基因通常是转录因子等关键的调控因子，是值得我们优先深入分析和挖掘的对象。而周边那些打酱油的成员，优先级可以往后放一放；
+ 
+2.利用关系预测基因功能
+ 
+在网络中，被调控线连接的基因，其表达模式是相似的，我们可以认为它们有相似的功能。所以，在这个网络中，如果线条一端的基因功能是已知的，那么就可以预测线条另一端功能未知的基因也有相似的功能，这就为我们下一步功能验证未知基因打开了一扇窗户。
+
+ 
+上图即我们根据模块内部各基因的信息制作的基因相关网络图，每个点代表一个基因，基因之间的连接线表示共表达关系。处于核心地位的转录因子用大圈表示。
+ 
+ 
+引入关注性状，像重量，疾病发展阶段等进行加权分析，这也是WGCNA的高明之处，解决现实问题。具体做法就是计算每个moudle里所有基因与性状或者样本的相关性以及可信性，选择最相关和最显著的mould作为核心moudle。如果再对模块内基因进行GO与KEGG功能富集分析，预测模块的功能，挑选富集功能与生物学问题相关的模块作为表型相关的moudle。
+ 
+获得表型相关的moudle后，接着就是分子机制的分析。基于核心模块，深入挖掘关键基因（hub gene）。根据核心模块内的基因共表达网络，寻找node或者与已知hub  gene表达相近（连在一起）的基因作为核心基因，就这么简单，后面就是验证实验了。忘了一个比较关键的点，WGCNA的分析结果可以实现与ctyoscape，VisANT等可视化软件的无缝对接，获得漂亮的结果。
+ 
+本文引用链接:http://www.biotrainee.com/thread-646-1-1.html
+ 
+####学习代码
+# 加权基因共表达网络分析（WGCNA）
+####培训  wgcna
+dev.off()
+rm(list=ls())
+setwd("/home/hcb-lab/桌面/xyl/wgcna/peixun/")
+dir()
+### 读入样本表达量以及形状数据
+library(WGCNA)
+datTraits <- read.csv("traits.csv", row.names = 1)
+datExpr <- read.csv("datExpr.csv", row.names = 1)
+datTraits = datTraits[match(rownames(datExpr), rownames(datTraits)),]
+### 利用表达量数据对样本进行聚类分析
+Tree = hclust(dist(datExpr), method = "average")
+### 将性状信息转化为颜色，
+traitColors = numbers2colors(datTraits, signed = FALSE)
+### 绘制树状图以及对应的性状热图
+plotDendroAndColors(Tree, traitColors, groupLabels = names(datTraits), main = " dendrogram and trait heatmap")
+### 表达网络拓扑结构的分析
+powers = c(c(1:10), seq(from = 12, to=20, by=2))
+### 选择合适的阈值参数（mean connectivity）
+sft = pickSoftThreshold(datExpr, powerVector = powers)
+plot(sft$fitIndices[,1], sft$fitIndices[,5])
+### 根据选择的阈值构建拓扑网络模型
+net = blockwiseModules(datExpr, power = 5, TOMType = "unsigned",
+                       numericLabels = TRUE, mergeCutHeight = 0.25,                   
+                       saveTOMs = TRUE, saveTOMFileBase = "femaleMouseTOM")
+### 将类别标签映射为颜色并绘制树状图
+mergedColors = labels2colors(net$colors)
+plotDendroAndColors(net$dendrograms[[1]], mergedColors[net$blockGenes[[1]]], "Module colors",                    
+                    addGuide = TRUE, dendroLabels = FALSE, autoColorHeight=FALSE, colorHeight = .1)
+geneTree = net$dendrograms[[1]]
+### 构建拓扑重叠矩阵计算基因距离
+moduleLabels = net$colors
+moduleColors = labels2colors(net$colors)
+dissTOM = 1-TOMsimilarityFromExpr(datExpr, power = 5)
+plotTOM = dissTOM^7
+# ###第一向量提升到第二向量的指数    
+# v <- c( 2,5.5,6)
+# t <- c(8, 3, 4)
+# print(v^t)
+# 它产生以下结果：
+# [1]  256.000  166.375 1296.000
+
+diag(plotTOM) = NA  ###gouzao构造对角矩阵
+TOMplot(plotTOM, geneTree, moduleColors)
+### 挑选每个模块的特征基因
+MEs0 = moduleEigengenes(datExpr, moduleColors)$eigengenes
+MEs = orderMEs(MEs0)
+### 计算特征基因与性状之间的相关系数，p-value
+moduleTraitCor = cor(MEs, datTraits, use = "p")
+dim(moduleTraitCor)
+moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nrow(datExpr))
+dim(moduleTraitPvalue)
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(", signif(moduleTraitPvalue, 1), ")", sep = "")
+dim(textMatrix) = dim(moduleTraitCor)
+### 绘制特征基因与性状相关性的热图
+graphics.off()
+par(mar=c(3,5,3,3))
+labeledHeatmap(Matrix = moduleTraitCor, xLabels = names(datTraits), yLabels = names(MEs),               
+               ySymbols = names(MEs), colorLabels = FALSE, colors = greenWhiteRed(50), textMatrix = textMatrix,      
+               setStdMargins = FALSE, cex.text = 0.5, cex.lab.x = 0.8, 
+               zlim = c(-1,1), main = "Module-trait relationships")
+### 特征基因与性状之间的聚类分析
+insulin = as.data.frame(datTraits$Insulin_ug_l)
+names(insulin) = "insulin"
+MET = orderMEs(cbind(MEs, insulin))
+plotEigengeneNetworks(MET, "", marDendro = c(0,8,1,2), 
+                      marHeatmap = c(3,8,3,2), cex.lab = 0.8, 
+                      xLabelsAngle = 90)
+ 
+图片效果之一，重要的是挖掘其中的生物学意义！！！
