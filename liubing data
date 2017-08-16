@@ -5,7 +5,13 @@ for ((i=45;i<=89;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-inst
 
 Tracing the formation of hematopoietic stem cells in mouse embryos by single-cell functional and RNA-Seq analyses [10-cell]
 ###########
+singlecell download
 
+1. E12.5_FL_Lin-Sca-1+Mac-1lowCD201+
+for ((i=60;i<=80;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP056/SRP056386/SRR19226$i/SRR19226$i.sra;done
+
+
+####
 
 转换sra为fastq
 ls *.sra|while read id;do(fastq-dump --split-3 --gzip $id);done
