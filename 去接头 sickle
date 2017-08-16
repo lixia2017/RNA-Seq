@@ -1,0 +1,23 @@
+## https://github.com/najoshi/sickle
+cd ~/biosoft
+mkdir sickle &&  cd sickle
+wget https://codeload.github.com/najoshi/sickle/zip/master  -O sickle.zip
+unzip sickle.zip 
+cd sickle-master
+make 
+~/biosoft/sickle/sickle-master/sickle -h 
+这个软件很简单，就是去除低质量的reads，而且还可以保证双端测序的完整性。
+~/biosoft/sickle/sickle-master/sickle pe -f test1.fastq  -r   test2.fastq  -t sanger  -o trimmed_output_file1.fastq -p trimmed_output_file2.fastq  
+
+PE forward file: test1.fastq
+PE reverse file: test2.fastq
+
+Total input FastQ records: 200000 (100000 pairs)
+
+FastQ paired records kept: 192262 (96131 pairs)
+FastQ single records kept: 3869 (from PE1: 3864, from PE2: 5)
+FastQ paired records discarded: 0 (0 pairs)
+FastQ single records discarded: 3869 (from PE1: 5, from PE2: 3864)
+
+然后批量查看处理前后的fastqc质量报告：
+ls *fastq |xargs -P 5 ~/biosoft/fastqc/FastQC/fastqc
