@@ -18,3 +18,6 @@ md5sum *.fastq.gz >md5sum.txt
 数据QC
 ls *.gz|while read id; do(fastqc $id -o ./fastqc/ -t 48);done
 
+统计所有样品的qc数据
+ls *.zip |while read id ; do unzip $id;done
+perl fastqc_table.pl
