@@ -9,3 +9,12 @@ Tracing the formation of hematopoietic stem cells in mouse embryos by single-cel
 
 转换sra为fastq
 ls *.sra|while read id;do(fastq-dump --split-3 --gzip $id);done
+
+数据完整性检测
+md5sum *.fastq.gz >md5sum.txt
+不同数据md5sum的结果不一样。。。
+
+
+数据QC
+ls *.gz|while read id; do(fastqc $id -o ./fastqc/ -t 48);done
+
