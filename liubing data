@@ -13,6 +13,9 @@ for ((i=60;i<=80;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-inst
 2. Adult HSCs
 for ((i=39;i<=85;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP056/SRP056386/SRR25087$i/SRR25087$i.sra;done
 
+3. EC (SRR1922583)
+for ((i=83;i<=99;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP056/SRP056386/SRR19225$i/SRR19225$i.sra;done
+
 ####
 
 转换sra为fastq
