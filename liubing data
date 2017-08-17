@@ -10,6 +10,8 @@ singlecell download
 1. E12.5_FL_Lin-Sca-1+Mac-1lowCD201+
 for ((i=60;i<=80;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP056/SRP056386/SRR19226$i/SRR19226$i.sra;done
 
+2. Adult HSCs
+for ((i=39;i<=85;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP056/SRP056386/SRR25087$i/SRR25087$i.sra;done
 
 ####
 
