@@ -9,3 +9,11 @@ $ extract_exons.py *.gtf >chrX.exon
 hisat2-build -f Mus_musculus.GRCm38.dna.primary_assembly.fa --ss mus_chr.ss --exon mus_chr.exon mus_chr_tran
 
 consuing time:Total time for call to driver() for forward index: 09:51:01
+
+第二种方法，直接下载：
+mouse index for hisat2
+wget -c ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/hg19.tar.gz
+
+
+human idex for hisat2
+wget -c ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/hg19.tar.gz
