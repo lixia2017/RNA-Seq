@@ -1,0 +1,11 @@
+mouse index for hisat2 code:
+
+1. 从参考基因组的注释文件中提取剪切位点及外显子的信息
+
+$ extract_splice_sites.py *.gtf >chrX.ss
+$ extract_exons.py *.gtf >chrX.exon 
+
+2. 构建索引文件
+hisat2-build -f Mus_musculus.GRCm38.dna.primary_assembly.fa --ss mus_chr.ss --exon mus_chr.exon mus_chr_tran
+
+consuing time:Total time for call to driver() for forward index: 09:51:01
