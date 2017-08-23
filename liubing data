@@ -34,3 +34,18 @@ ls *.gz|while read id; do(fastqc $id -o ./fastqc/ -t 48);done
 统计所有样品的qc数据
 ls *.zip |while read id ; do unzip $id;done
 perl fastqc_table.pl
+
+数据比对（sam to bam ///比对效率）
+#! usr/bin/bash
+set -u
+set -e
+set -o pipefail
+GRCH38_ref=~/hsc/liubing_10cell/fastq/data/mus_genome
+data_path=~/hsc/liubing_10cell/fastq/data/Fetalliver_fastq/fastq
+GRCH38_mouse_index=~/hsc/liubing_10cell/fastq/data/mus_hisat2_index/mus_chr_tran
+GRCH38_GTF=~/hsc/liubing_10cell/fastq/data/mus_gtf/Mus_musculus.GRCm38.86.gtf
+GRCH38_human_index=~/hsc/liubing_10cell/fastq/data/human_hisat2_index/chr_tran
+NUM_THREADS=48
+ls --color=never *.fastq.gz|while read id;do(hisat2 -t -p $NUM_THREADS -x  $GRCH38_mouse_index  -1 $data_path/${id%_*}_1.fastq.gz -2 $data_path/${id%_*}_2.fastq.gz 2>${id%_*}_map.log | samtools view -Sb - >${id%_*}.bam);done
+ls --color=never *.bam|while read id;do(samtools sort -n --threads 40 $id -o ${id%.*}_sorted_name.bam);done
+ls --color=never *_sorted_name.bam | while read id;do(samtools index $id);done
