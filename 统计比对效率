@@ -1,0 +1,1 @@
+ls *log|while read id; do(echo "$id"|grep 'overall' $id|perl -lne '$_=~m/(.*) overall/;system(echo "$id");print $1');done
