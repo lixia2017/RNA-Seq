@@ -22,7 +22,9 @@ for ((i=681;i<=712;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-in
 
 5.T1
 for ((i=00;i<=27;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP056/SRP056386/SRR19226$i/SRR19226$i.sra;done
-
+##报错，感觉00无法识别
+尝试
+for ((i=600;i<=627;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP056/SRP056386/SRR1922$i/SRR1922$i.sra;done
 
 转换sra为fastq
 ls *.sra|while read id;do(fastq-dump --split-3 --gzip $id);done
