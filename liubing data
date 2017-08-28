@@ -33,6 +33,10 @@ for ((i=28;i<=59;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-inst
 PART2 （SRR2508828）
 for ((i=28;i<=71;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP056/SRP056386/SRR25088$i/SRR25088$i.sra;done
 
+7.T1_neg SRR2508786
+for ((i=786;i<=827;i++)); do wget -c ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP056/SRP056386/SRR2508$i/SRR2508$i.sra;done
+
+
 转换sra为fastq
 ls *.sra|while read id;do(fastq-dump --split-3 --gzip $id);done
 
