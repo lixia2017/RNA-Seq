@@ -19,3 +19,5 @@ VlnPlot(pbmc,c("Cd79a","Cd79b","Cd19","Kit", "Ly6a","Id2","Id3","Cd83","Ebf1","V
 
 
 ##CD47，CD63 血小板  
+
+## CD83 淋系
