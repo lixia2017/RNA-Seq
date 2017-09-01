@@ -1,0 +1,10 @@
+##before analysis
+VlnPlot(pbmc, "Actb")
+VlnPlot(pbmc, c("Actb","Gapdh","Ly6a","Kit", "Procr","Ptprc","Itgam","Cd47","Cd34","Flt3","Erg","Myb","Hoxb4"))
+VlnPlot(pbmc, c("Cd48","Slamf1","Pecam1","Gata2","Meis1","Cd164","Cd55","Cd63","Cd69","Cd44","Cd53","Cd52","Cd79b","Cd81","Cd93","Ctnna1"))
+##"Procr "CD201"
+##"Ptprc"CD45"
+##Itgam mac1
+VlnPlot(pbmc,c("Bmi1","Lmo2","Etv3","Etv6","Runx1","Sox4","Atg7","Hif1a","Hmmr","Itga2b","Itgb1","Itga4","Cd24a"))
+####
+VlnPlot(pbmc, c("Actb","Gapdh","Ly6a","Kit", "Procr","Ptprc","Itgam","Cd47","Cd34","Flt3","Erg","Myb","Hoxb4","Cd48","Slamf1","Pecam1","Gata2","Meis1","Cd164","Cd55","Cd63","Cd69","Cd44","Cd53","Cd52","Cd79b","Cd81","Cd93","Ctnna1","Bmi1","Lmo2","Etv3","Etv6","Runx1","Sox4","Atg7","Hif1a","Hmmr","Itga2b","Itgb1","Itga4","Cd24a"))
