@@ -16,3 +16,6 @@ VlnPlot(pbmc, c("Actb","Gapdh","Ly6a","Kit","Procr","Ptprc","Itgam","Cd47","Cd34
 VlnPlot(pbmc,c("Cd79a","Cd79b","Cd19","Kit", "Ly6a","Ebf1","Vpreb3"))  ###5
 
 VlnPlot(pbmc,c("Cd79a","Cd79b","Cd19","Kit", "Ly6a","Id2","Id3","Cd83","Ebf1","Vpreb3"))  ##6
+
+
+##CD47，CD63 血小板  
