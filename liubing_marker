@@ -1,0 +1,15 @@
+HSCs Marker 小鼠
+
+
+VlnPlot(pbmc, c("Actb","Gapdh","Ly6a","Kit","Procr","Ptprc","Itgam","Cd47","Cd34","Flt3","Cd48","Slamf1","Pecam1","Cd164"))
+
+VlnPlot(pbmc, c("Cd55","Cd63","Cd69","Cd44","Cd53","Cd52","Cd79b","Cd81","Cd93","Hmmr","Itga2b","Itgb1","Itga4","Cd24a"))
+
+VlnPlot(pbmc, c("Actb","Gapdh","Ly6a","Kit","Flt3","Erg","Myb","Hoxb4","Slamf1","Pecam1","Gata2","Meis1","Cd164","Ctnna1","Bmi1","Lmo2","Etv3","Etv6","Runx1","Sox4","Atg7","Hif1a","Hmmr"))
+
+
+VlnPlot(pbmc,c("Cd79a","Cd79b","Cd19","Stmn1","Id2","Id3","Cd83","Ebf1","Vpreb3"))
+
+VlnPlot(pbmc,c("Cd79a","Cd79b","Cd19","Kit", "Ly6a","Ebf1","Vpreb3"))
+
+VlnPlot(pbmc,c("Cd79a","Cd79b","Cd19","Kit", "Ly6a","Id2","Id3","Cd83","Ebf1","Vpreb3"))
