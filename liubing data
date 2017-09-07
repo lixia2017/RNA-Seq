@@ -74,4 +74,28 @@ ls --color=never *.bam|while read id;do(htseq-count -f bam -i gene_name -s no $i
 
 #问题:一个样品对应两个SRA？
 
+##测序10cells（刘兵）数据统计——count
+
+setwd("/home/hcb-lab/hsc/rawdata/liubing_10cell_allcounts/")
+a=read.table('tmp.txt',sep = '\t',stringsAsFactors = F)
+head(a)
+library(reshape2)
+count <- dcast(a,formula = V2~V1)
+??dcast
+
+row.names(count)<-count$V2
+count<-count[,-1]
+
+colnames(count)
+#7  6  5 17 ec t1 t2 fl 14 6 8  10+7
+col<-c(paste("EC10",1:14,sep="_"),paste("FL12",1:10, sep="_"),paste("FL14",1:7,sep="_"),paste("T1",1:6,sep="_"),paste("T2",1:8,sep="_"))
+
+colnames(count)<-col
+
+## 改名
+names(count)<-unlist(lapply(names(count),function(x){
+  tmp<-strsplit(x,'_')[[1]][1]
+}))  ##体会[1]与[[1]]的区别
+
+write.csv(count,"liubing_10cells_count.csv")
 
