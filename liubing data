@@ -68,6 +68,10 @@ ls --color=never *.bam|while read id;do(samtools sort -n --threads 40 $id -o ${i
 ls --color=never *_sorted_name.bam | while read id;do(samtools index $id);done
 
 
+统计各样品的比对效率
+ls *log|while read id;do(echo "$id"|grep 'overall' $id|perl -lne '$_=~m/(.*) overall /;system(echo "$id");print $1');done
+
+
 htseq统计数据的count数
 GRCH38_mGTF=~/hsc/liubing_10cell/fastq/data/mus_gtf/Mus_musculus.GRCm38.86.gtf
 ls --color=never *.bam|while read id;do(htseq-count -f bam -i gene_name -s no $id $GRCH38_mGTF > ${id%_*}.count 2>${id%_*}.log);done
