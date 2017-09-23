@@ -1,0 +1,56 @@
+##bar 添加数值。。。
+##参考链接：https://stackoverflow.com/questions/6644997/showing-data-values-on-stacked-bar-chart-in-ggplot2
+
+
+rm(list=ls())
+Year<- c(rep(c("2006-07", "2007-08", "2008-09", "2009-10"), each = 4))
+Category <- c(rep(c("A", "B", "C", "D"), times = 4))
+Frequency <- c(168, 259, 226, 340, 216, 431, 319, 368, 423, 645, 234, 685, 166, 467, 274, 251)
+Data <- data.frame(Year, Category, Frequency)
+head(Data)
+
+library(ggplot2)
+
+ggplot(Data, aes(x = Year, y = Frequency, fill = Category, label = Frequency)) +
+  geom_bar(stat = "identity") +
+  geom_text(size = 3, position = position_stack(vjust = 0.5))
+
+
+##methods 2
+rm(list=ls())
+Year<- c(rep(c("2006-07", "2007-08", "2008-09", "2009-10"), each = 4))
+Category <- c(rep(c("A", "B", "C", "D"), times = 4))
+Frequency <- c(168, 259, 226, 340, 216, 431, 319, 368, 423, 645, 234, 685, 166, 467, 274, 251)
+Data <- data.frame(Year, Category, Frequency)
+head(Data)
+
+library(ggplot2)
+
+ggplot(Data, aes(x = Year, y = Frequency, fill = Category, label = Frequency)) +
+  geom_bar(stat = "identity") +
+  geom_text(size = 3, position = position_stack(vjust = 0.5))
+
+
+
+rm(list = ls())
+library(scales)
+
+x <- data.frame(filename = c("file1", "file2", "file3", "file4"),
+                low = c(-.05,.06,.07,-.14),
+                hi = c(.87,.98,.56,.79))
+head(x)
+x$tot <- x$hi + x$low
+x
+
+library(reshape2)
+x <- melt(x, id = 'filename')
+
+head(x)
+###################
+ggplot(x, aes(x = filename, fill = variable)) +
+  geom_bar(stat="identity", ymin=0, aes(y=value, ymax=value), position="dodge") +
+  geom_text(aes(x=filename, y=value, ymax=value, label=value, 
+                hjust=ifelse(sign(value)>0, 1, 0)), 
+            position = position_dodge(width=1)) +
+  scale_y_continuous(labels = percent_format()) +
+  coord_flip()
