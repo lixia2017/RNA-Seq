@@ -1,4 +1,5 @@
 #测序覆盖度
+https://stackoverflow.com/questions/14629607/long-vector-plot-coverage-plot-in-r
 
 # construct a test data with 3 chromosomes and 100 positions
 # and random coverage between 0 and 500
