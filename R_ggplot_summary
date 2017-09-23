@@ -1,0 +1,95 @@
+ggplot总结一下
+jmzeng1314@163.com
+ 
+首先加载包及数据集，选取一个小量数据集来做分析，各种属性映射由ggplot函数执行，只需要加一个图层，使用geom_point()告诉ggplot要画散点，于是所有的属性都映射到散点上。
+geom_point()完成的就是几何对象的映射，ggplot2提供了各种几何对象映射，如geom_histogram用于直方图，geom_bar用于画柱状图，geom_boxplot用于画箱式图等等。
+不同的几何对象，要求的属性会有些不同，这些属性也可以在几何对象映射时提供。
+1，散点图
+ggplot(data = small, mapping = aes(x = carat, y = price , shape=cut, colour=color)) +geom_point()
+或者是ggplot(small) +geom_point(aes(x=carat, y=price, shape=cut, colour=color))
+aes里面的就是映射，根据cut的不同选取不同形状的点，根据color来画不同颜色的点，可以在ggplot里面映射，也可以在几何对象里面映射
+2，直方图
+ggplot(small)+geom_histogram(aes(x=price, fill=cut), position="fill")
+直方图只需要一个数据，自动分组来得到X,Y轴变量，直方图把连续型的数据按照一个个等长的分区（bin）来切分，然后计数，画柱状图
+3，条形图
+ 
+以上两个等价
+ggplot()+geom_bar(aes(x=c(LETTERS[1:3]),y=1:3), stat="identity")
+条形图只有自定义Y轴，然后用stat="identity"才是真正意义上的条形图
+4，密度函数图
+ggplot(small)+geom_density(aes(x=price, colour=cut))
+ggplot(small)+geom_density(aes(x=price,fill=clarity))
+密度函数图，数据和映射和直方图是一样的，唯一不同的是几何对象，geom_histogram告诉ggplot要画直方图，而geom_density则说我们要画密度函数图，也是同样的把连续型的数据按照一个个等长的分区（bin）来切分，然后计数，画曲线
+5，箱式图
+ggplot(small)+geom_boxplot(aes(x=cut, y=price,fill=color))
+总共有5种cut，每个cut下面都有7种color，所以会形成35个箱子
+ 
+标尺
+ggplot(small)+geom_point(aes(x=carat, y=price, shape=cut,colour=color)) +scale_y_log10()+scale_colour_manual(values=rainbow(7))
+因为colour所映射的变量是7个，所以rainbow(7)才合法
+统计变换（Statistics）
+ggplot(small, aes(x=carat, y=price))+geom_point()+scale_y_log10()+stat_smooth()
+这里，aes所提供的参数，就通过ggplot提供，而不是提供给geom_point，因为ggplot里的参数，相当于全局变量，geom_point()和stat_smooth()都知道x,y的映射，如果只提供给geom_point()，则相当于是局部变量，geom_point知道这种映射，而stat_smooth不知道，当然你再给stat_smooth也提供x,y的映射，不过共用的映射，还是提供给ggplot好。
+ 
+统计变换是非常重要的功能，我们可以自己写函数，基于原始数据做某种计算，并在图上表现出来，也可以通过它改变geom_xxx函数画图的默认统计参数。
+坐标系统（Coordinante）
+坐标系统控制坐标轴，可以进行变换，例如XY轴翻转，笛卡尔坐标和极坐标转换，以满足我们的各种需求。
+坐标轴翻转由coord_flip()实现
+ggplot(small)+geom_bar(aes(x=cut, fill=cut))+coord_flip()
+而转换成极坐标可以由coord_polar()实现：
+ggplot(small)+geom_bar(aes(x=factor(1), fill=cut))+coord_polar(theta="y")
+ggplot(small)+geom_bar(aes(x=factor(1), fill=cut))
+ggplot(small)+geom_bar(aes(x=factor(1), fill=cut))+coord_polar(theta='y')就是饼图
+这个bar图是统计cut的各个因子出现的次数，来作为Y轴
+ 
+合并画多个饼图
+ggplot(new_a,aes(x ="",y=V3, fill=V2)) +geom_bar(width = 3, stat="identity") +coord_polar("y")+ facet_wrap(type~V1)+theme(text=element_text(face='bold'))
+以及风玫瑰图(windrose)
+ggplot(small)+geom_bar(aes(x=clarity, fill=cut))+coord_polar()
+
+ 
+主题
+ggplot2提供一些已经写好的主题，比如theme_grey()为默认主题，我经常用的theme_bw()为白色背景的主题，还有theme_classic()主题，和R的基础画图函数较像。
+别外ggthemes包提供了一些主题可供使用，包括：
+ 
+还有二维密度图
+ggplot(diamonds, aes(carat, price))+ stat_density2d(aes(fill = ..level..), geom="polygon")+ scale_fill_continuous(high='darkred',low='darkgreen')
+其中..level..是生成的变量，
+ 
+ 
+一：并列箱图
+ 
+需要加载的包
+library(ggplot2)，library(reshape2)，library(scales)
+数据截屏显示
+ 
+第一列是品牌名，第二列是对应的品牌对应的多个价格。
+绘图代码如下
+ggplot(a,aes(x=a[,1],y=a[,2]))+geom_boxplot()#以第一列品牌并列画箱图
++stat_summary(fun.y="mean",geom="point",shape=23,size=3,fill="red")
++theme_set(theme_set(theme_bw(base_size=20)))#设置主题，字体大小
++theme(text=element_text(face='bold'),axis.text.x=element_text(angle=30,hjust=1),axis.title=element_blank())#设置坐标轴的格式
++scale_y_continuous(breaks=c(5000,10000,15000,20000,25000),labels=comma(c(5000,10000,15000,20000,25000)))#设置y轴的数据显示逗号分隔
+library(scales)这个包里面还有很多实用函数，比如percent(),dollar(),scientific()
+
+二,分面折线图
+library(ggplot2) theme_set(theme_bw()) theme_update(strip.background=element_rect(colour="white")) cities <- c("Beijing", "Hong Kong", "Macau", "Nanjing") measures <- sprintf("Particle %s", toupper(letters[1:8])) df <- data.frame(expand.grid(city=cities, measure=measures)) df$value <- rexp(nrow(df)) p <- (ggplot(df, aes(x=measure, y=value, color=measure, group=city)) +       scale_color_discrete(guide=FALSE) +       geom_point() + facet_wrap(~ city) +       geom_line(color="grey", alpha=0.5) +       xlab(""))
+  
+Expand.grid这个函数可以把两个因子型的向量组合成数据框
+data.frame(expand.grid(city=cities, measure=measures))
+根据后面的measure来把city轮流重复,效果如下
+ 
+rexp(n, rate = 1)会生成n个随机数
+
+
+
+三、简单热图
+ 
+
+
+
+Tmp是对一个多列数据做好的cor矩阵
+library(gplots)
+heatmap.2(tmp, col=topo.colors(5),main="tmp",Rowv=NA, Colv=NA,density.info="none", trace="none")
+
+
