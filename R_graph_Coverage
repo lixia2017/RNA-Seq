@@ -19,3 +19,35 @@ p + facet_wrap(~ chr, ncol=1)
 ##
 统计测序深度
 samtools mpileup -f ~/reference/genome/human_g1k_v37/human_g1k_v37.fasta ../P_jmzeng.final.bam|head -1000000 |perl -alne '{$pos=int($F[1]/1000); $key="$F[0]\t$pos";$GC{$key}++ if $F[2]=~/[GC]/;$counts_sum{$key}+=$F[3];$number{$key}++;}END{print "$_\t$number{$_}\t$GC{$_}\t$counts_sum{$_}" foreach sort{$a<=>$b} keys %number}'
+
+画图：
+a=read.table('../tmp.txt')
+a$GC = a[,4]/a[,3]
+a$depth = a[,5]/a[,3]
+a = a[a$depth<100,]
+plot(a$GC,a$depth)
+library(ggplot2)
+# GET EQUATION AND R-SQUARED AS STRING
+# SOURCE: http://goo.gl/K4yh
+lm_eqn <- function(x,y){
+m <- lm(y ~ x);
+eq <- substitute(italic(y) == a + b %.% italic(x)*","~~italic(r)^2~"="~r2,
+list(a = format(coef(m)[1], digits = 2),
+b = format(coef(m)[2], digits = 2),
+r2 = format(summary(m)$r.squared, digits = 3)))
+as.character(as.expression(eq));
+}
+p=ggplot(a,aes(GC,depth)) + geom_point() +
+geom_smooth(method='lm',formula=y~x)+
+geom_text(x = 0.5, y = 100, label = lm_eqn(a$GC , a$depth), parse = TRUE)
+p=p+theme_set(theme_set(theme_bw(base_size=20)))
+p=p+theme(text=element_text(face='bold'),
+axis.text.x=element_text(angle=30,hjust=1,size =15),
+plot.title = element_text(hjust = 0.5) ,
+panel.grid = element_blank(),
+#panel.border = element_blank()
+)
+print(p)
+
+参考链接：
+https://mp.weixin.qq.com/s?__biz=MzAxMDkxODM1Ng==&mid=2247483912&idx=2&sn=98431355a5aaa363741bd66de50272c4&chksm=9b4842b3ac3fcba535b26486ffbb95892d172f8240f9b55a281e19b50fff713d05a53aefb45a&scene=21#wechat_redirect
