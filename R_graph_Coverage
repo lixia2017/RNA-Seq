@@ -15,3 +15,7 @@ df
 require(ggplot2)
 p <- ggplot(data = df, aes(x=pos, y=cov)) + geom_area(aes(fill=chr))
 p + facet_wrap(~ chr, ncol=1)
+
+##
+统计测序深度
+samtools mpileup -f ~/reference/genome/human_g1k_v37/human_g1k_v37.fasta ../P_jmzeng.final.bam|head -1000000 |perl -alne '{$pos=int($F[1]/1000); $key="$F[0]\t$pos";$GC{$key}++ if $F[2]=~/[GC]/;$counts_sum{$key}+=$F[3];$number{$key}++;}END{print "$_\t$number{$_}\t$GC{$_}\t$counts_sum{$_}" foreach sort{$a<=>$b} keys %number}'
