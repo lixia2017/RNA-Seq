@@ -1,0 +1,16 @@
+#测序覆盖度
+
+# construct a test data with 3 chromosomes and 100 positions
+# and random coverage between 0 and 500
+rm(list=ls())
+set.seed(45)
+chr <- rep(paste0("chr", 1:3), each=100)
+pos <- rep(1:100, 3)
+cov <- sample(0:500, 300)
+df  <- data.frame(chr, pos, cov)
+head(df)
+df
+
+require(ggplot2)
+p <- ggplot(data = df, aes(x=pos, y=cov)) + geom_area(aes(fill=chr))
+p + facet_wrap(~ chr, ncol=1)
