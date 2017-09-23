@@ -1,0 +1,17 @@
+library(ggplot2)
+df <- data.frame(cond = factor( rep(c("A","B"), each=200) ), 
+                 rating = c(rnorm(200),rnorm(200, mean=.8)))
+head(df)
+
+ggplot(df, aes(x=rating, fill=cond)) + 
+  geom_density(alpha=.3)+
+  xlab("NEW RATING TITLE")+ylab("NEW DENSITY TITLE")
+
+p <- ggplot(df, aes(x=rating, fill=cond)) + 
+  geom_density(alpha=.3) + 
+  xlab("NEW RATING TITLE") + 
+  ylab("NEW DENSITY TITLE")
+
+p <- p + guides(fill=guide_legend(title="New Legend Title"))
+
+p + scale_fill_discrete(name = "New Legend Title")
