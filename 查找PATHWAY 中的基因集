@@ -1,0 +1,60 @@
+查找PATHWAY 中的基因集
+
+参考链接：https://mp.weixin.qq.com/s/za6fMxugkBnQ0SekYmgUrA
+
+KEGG数据库的rest API(附带R语言小技巧)
+原创 2018-03-10 会咋眼的鱼 生信技能树
+
+发现感兴趣的KEGG ID居然不在KEGG.db包里面，比如：
+
+hsa05034 Alcoholism
+hsa05030 Cocaine addiction
+
+导致下面的代码失效：
+
+library(KEGG.db)
+ls("package:KEGG.db")
+cellcycle_genes=KEGGPATHID2EXTID[['hsa04110']]
+cytokine_genes=KEGGPATHID2EXTID[['hsa04060']]
+KEGGPATHID2EXTID[['hsa05034']]
+KEGGPATHID2EXTID[['hsa05030']]
+其实，即使不失效，也不能使用这种方法来找属于某个pathway的基因集合了，因为这个R包以及很多年没有更新了。
+
+搜索了一下，发现KEGG数据库的rest API，比如
+
+http://rest.kegg.jp/get/hsa05034 (点击阅读原文可以直达)
+
+本来准备读入到R里面，然后自己解析，发现其实已经有了R包：
+
+library(KEGGREST)
+listDatabases()
+
+## ----get_organisms------------------------------------------------------------
+org <- keggList("organism")
+head(org)
+keggGet('hsa05034')
+gs <- keggGet('hsa05034') 
+gs[[1]]$GENE
+genes <- unlist(lapply(gs[[1]]$GENE,function(x) strsplit(x,';')[[1]][1]))
+genes[1:length(genes)%%2 ==0]
+当然了，这个R包的功能不止如此：https://bioconductor.org/packages/release/bioc/html/KEGGREST.html 我就不多演示了，感兴趣的朋友去探索一下。
+
+补充阅读：
+pathway gif动画版 可视化 ：https://github.com/ajmazurie/kegg-animate-pathway
+
+另外：附赠一个基因ID转换R语言完成方式：
+ensembl2symbol <- function(genes){
+  library(org.Hs.eg.db)
+  eg2symbol=toTable(org.Hs.egSYMBOL)
+  eg2ensembl=toTable(org.Hs.egENSEMBL)
+  #genes=sample(eg2ensembl$ensembl_id,100)
+  tmp=merge(eg2symbol,eg2ensembl,by='gene_id')
+  return(tmp[tmp$ensembl_id %in% genes,])
+}
+genes=sample(eg2ensembl$ensembl_id,100)
+ensembl2symbol(genes)
+genes=sample(eg2ensembl$ensembl_id,100)
+ensembl2symbol(genes)
+genes=sample(eg2ensembl$ensembl_id,100)
+ensembl2symbol(genes)
+
