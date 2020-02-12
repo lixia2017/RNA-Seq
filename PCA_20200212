@@ -1,0 +1,28 @@
+
+myfpkm<-read.table("matrix.TMM.EXPR.matrix",header=T,row.names=1,sep"\t") ##row gene;col,sample
+probesetvar = apply(myfpkm, 1, var)  #表达变化大的基因
+ord = order(probesetvar, decreasing=TRUE)[1:5000]   #前200个基因，或者更多
+pca = prcomp(t(myfpkm[ord,]), scale=TRUE)
+ss=summary(pca)
+
+#绘图：
+
+plot(pca$x[,1:2]）
+
+
+scores=as.data.frame(pca$x) 
+
+#判断pca1$x是否为数据框，如果不是就将其转换为数据框
+
+​library(ggplot2) #载入ggplot2包
+
+
+ggplot(data=scores,aes(x=PC1,y=PC2,label=rownames(scores)))+geom_text(colour="blue",alpha=0.9,size=4)+ggtitle("PCA plot")
+
+ggplot(data=scores,aes(x=PC1,y=PC2,label=rownames(scores)))+geom_text(colour="blue",alpha=0.9,size=4,scale_x_continous(limits=c("-30","30"))+ggtitle("PCA plot")
+
+xlim=c(-30,30)
+
+ggplot(data=scores,aes(x=PC1,y=PC2,label=rownames(scores)))+geom_hline(yintercept=0,colour="gray65")+geom_vline(xintercept=0,colour="red")+geom_text(colour="blue",alpha=0.9,size=2)+ggtitle("PCA plot")
+
+#data=scores利用scores的数据绘图，aes(x=PC1,y=PC2,label=rownames(scores))表示x、y轴分别为PC1和PC2，label=rownames(scores)表示图中标签为scores的行名，geom_hline(yintercept=0,colour="gray65")表示在y=0处绘制一条灰色参考线，geom_vline(xintercept=0,colour="red")表示在x=0处绘制一条红色参考线，geom_text(colour="blue",alpha=0.9,size=2)表示图中标签颜色为蓝色，alpha代表透明度(0完全透明，1完全不透明)，size=2表示标签大小为2，ggtitle("PCA plot")添加标题“PCA plot"
