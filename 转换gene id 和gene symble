@@ -1,0 +1,16 @@
+
+BiocManager::install("org.Hs.eg.db")
+
+
+library(org.Hs.eg.db)
+
+
+ensids<-c("ENSG00000144644", "ENSG00000159307", "ENSG00000144485")
+
+cols<-c("SYMBOL","GENENAME")
+
+select(org.Hs.eg.db,keys = ensids,columns = cols,keytype = "ENSEMBL")
+
+https://www.jianshu.com/p/23ab6c8d6cd3
+
+org.Hs.eg.db
