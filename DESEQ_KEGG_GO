@@ -1,0 +1,149 @@
+getwd()
+
+setwd("E:/WJP_CART/")
+
+dir()
+
+count<-read.table("wjp_count_dg.txt",row.names = 1,header = T,sep = "\t",stringsAsFactors = T)
+
+colnames(count)
+
+rownames(count)<-count$symble
+
+test<-count[which(!count$symble=="NA"),]
+##na.omit 
+#test<-na.omit(count)
+
+count[which(count$symble=="ACTB"),]
+
+data<-test
+
+rownames(data)<-data$symble
+colnames(data)
+
+data<-data[,-32]
+
+condition<-""
+condition[1:8]<-"C1"
+condition[9:11]<-"C3"
+condition[12:16]<-"C4"
+condition[17:19]<-"N3"
+condition[20:24]<-"N4"
+condition[25:27]<-"N1"
+condition[28:31]<-"N2"
+
+
+treatment<-as.data.frame(condition)
+treatment$group<-colnames(data)
+rownames(treatment)<-colnames(data)
+
+treatment$condition 
+
+library(DESeq2)
+
+dds <- DESeqDataSetFromMatrix(countData = data,
+                              colData = treatment,
+                              design = ~ condition)
+dds <- DESeq(dds)
+ 
+##
+
+
+res_N4vsN2 <- results(dds,contrast=c("condition", "N4","N2")) #C1为分母
+
+summary(res_N4vsN2)
+
+resOrdered_N4vsN2 <- res_N4vsN2[order(res_N4vsN2$padj), ]
+
+dim(resOrdered_N4vsN2)
+
+resSig_N4vsN2 <- subset(resOrdered_N4vsN2, padj < 0.05 & abs(log2FoldChange)>1)
+write.table(resOrdered_N4vsN2, file="N4vsN2_DESeq2_results.txt",sep="\t",quote=F)
+write.table(resSig_N4vsN2, file="N4vsN23_Sig_P005fc1.txt",sep="\t",quote=F)
+
+
+###
+resSig_N4vsN2 <- subset(resOrdered_N4vsN2, padj < 0.01 & abs(log2FoldChange)>4)
+
+
+#DEG.gene_symbol = as.character(output.gene_id$gene_id) #获得基因 symbol ID
+
+
+DEG.gene_symbol = rownames(resSig_N4vsN2)
+length(DEG.gene_symbol)
+
+DEG.entrez_id = mapIds(x = org.Hs.eg.db,
+                       keys = DEG.gene_symbol,
+                       keytype = "SYMBOL",
+                       column = "ENTREZID")
+
+DEG.entrez_id = na.omit(DEG.entrez_id)
+
+
+###BP
+erich.go.BP = enrichGO(gene = DEG.entrez_id,
+                       OrgDb = org.Hs.eg.db,
+                       keyType = "ENTREZID",
+                       ont = "BP",
+                       pvalueCutoff = 0.5,
+                       qvalueCutoff = 0.5)
+
+##分析完成后，作图
+dotplot(erich.go.BP)
+
+tiff(file="N4_N2_BP.tiff",width = 800,height = 600)
+dotplot(erich.go.BP)
+dev.off()
+
+#plotGOgraph(erich.go.BP)
+
+pdf(file="N4_N2_enrich.go.bp.tree.pdf",width = 10,height = 15)
+plotGOgraph(erich.go.BP)
+dev.off()
+
+
+###CC
+erich.go.CC = enrichGO(gene = DEG.entrez_id,
+                       OrgDb = org.Hs.eg.db,
+                       keyType = "ENTREZID",
+                       ont = "CC",
+                       pvalueCutoff = 0.5,
+                       qvalueCutoff = 0.5)
+## 画图
+#barplot(erich.go.CC)
+dotplot(erich.go.CC)
+tiff(file="N4_N2_CC.tiff",width = 800,height = 600)
+dotplot(erich.go.CC)
+dev.off()
+
+
+
+##MF
+erich.go.MF = enrichGO(gene = DEG.entrez_id,
+                       OrgDb = org.Hs.eg.db,
+                       keyType = "ENTREZID",
+                       ont = "MF",
+                       pvalueCutoff = 0.5,
+                       qvalueCutoff = 0.5)
+
+##分析完成后，作图
+dotplot(erich.go.MF)
+tiff(file="N4_N2_MF.tiff",width = 800,height = 600)
+dotplot(erich.go.MF)
+dev.off()
+
+
+##KEGG
+
+erich.KEGG <- enrichKEGG(gene = DEG.entrez_id, keyType = "kegg", organism= 'hsa', pvalueCutoff= 0.05,pAdjustMethod = "BH",qvalueCutoff  = 0.05)
+
+#erich.KEGG <- enrichKEGG(gene = DEG.entrez_id, keyType = "kegg", organism= 'hsa', pvalueCutoff= 0.05,pAdjustMethod = "BH")
+
+##分析完成后，作图
+dotplot(erich.KEGG)
+#barplot(erich.KEGG)
+
+dev.new()
+tiff(file="N4_N2_KEGG.tiff",width = 800,height = 600)
+dotplot(erich.KEGG)
+dev.off()
