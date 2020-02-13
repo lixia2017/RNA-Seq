@@ -1,0 +1,87 @@
+getwd()
+
+setwd("E:/WJP_CART/")
+
+dir()
+
+count<-read.table("wjp_count_dg.txt",row.names = 1,header = T,sep = "\t",stringsAsFactors = T)
+
+colnames(count)
+
+rownames(count)<-count$symble
+
+test<-count[which(!count$symble=="NA"),]
+##na.omit 
+#test<-na.omit(count)
+
+count[which(count$symble=="ACTB"),]
+
+data<-test
+
+rownames(data)<-data$symble
+colnames(data)
+
+data<-data[,-32]
+
+condition<-""
+condition[1:8]<-"C1"
+condition[9:11]<-"C3"
+condition[12:16]<-"C4"
+condition[17:19]<-"N3"
+condition[20:24]<-"N4"
+condition[25:27]<-"N1"
+condition[28:31]<-"N2"
+
+
+treatment<-as.data.frame(condition)
+treatment$group<-colnames(data)
+rownames(treatment)<-colnames(data)
+
+treatment$condition 
+
+library(DESeq2)
+
+dds <- DESeqDataSetFromMatrix(countData = data,
+                              colData = treatment,
+                              design = ~ condition)
+dds <- DESeq(dds)
+
+
+res_C1vsC3 <- results(dds,contrast=c("condition", "C3","C1")) #C1为分母
+
+summary(res_C1vsC3)
+
+resOrdered_C1vsC3 <- res_C1vsC3[order(res_C1vsC3$padj), ]
+
+dim(resOrdered_C1vsC3)
+
+resSig_C1vsC3 <- subset(resOrdered_C1vsC3, padj < 0.05 & abs(log2FoldChange)>1)
+write.table(resOrdered_C1vsC3, file="C1vsC3_DESeq2_results.txt",sep="\t",quote=F)
+write.table(resSig_C1vsC3, file="C1vsC3_Sig_P005fc1.txt",sep="\t",quote=F)
+
+library(ggplot2)
+library(ggrepel)
+
+Dat<-as.data.frame(resOrdered_C1vsC3)
+ggplot(Dat,aes(x=log2FoldChange,y=-log10(padj)))+geom_point()
+
+##m美化
+Dat$threshold = factor(ifelse(Dat$padj < 0.05 & abs(Dat$log2FoldChange) >= 1, ifelse(Dat$log2FoldChange>= 1 ,'Up','Down'),'NoSignifi'),levels=c('Up','Down','NoSignifi'))
+Dat$Gene<-rownames(Dat)
+
+ggplot(Dat,aes(x=log2FoldChange,y=-log10(padj),color=threshold))+
+  geom_point()+
+  scale_color_manual(values=c("#DC143C","#00008B","#808080"))+ #确定点的颜色
+  geom_text_repel(
+    data = Dat[Dat$padj<0.05&abs(Dat$log2FoldChange)>1,],
+    aes(label = Gene),
+    size = 3,
+    segment.color = "black", show.legend = FALSE )+#添加关注的点的基因名
+  theme_bw()+#修改图片背景
+  theme(
+    legend.title = element_blank() #不显示图例标题
+  ) +
+  ylab('-log10 (p-adj)')+ #修改y轴名称
+  xlab('log2 (FoldChange)')+ #修改x轴名称
+  geom_vline(xintercept=c(-1,1),lty=3,col="black",lwd=0.5) + #添加横线|FoldChange|>2
+  geom_hline(yintercept = -log10(0.05),lty=3,col="black",lwd=0.5) #添加竖线padj<0.05
