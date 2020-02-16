@@ -14,3 +14,12 @@ select(org.Hs.eg.db,keys = ensids,columns = cols,keytype = "ENSEMBL")
 https://www.jianshu.com/p/23ab6c8d6cd3
 
 org.Hs.eg.db
+
+
+
+##SYMBOL 转化 ENSEMBL
+
+ensids<-rownames(dge)
+cols<-c("ENSEMBL")
+select(org.Hs.eg.db,keys = ensids,columns = cols,keytype = "SYMBOL")
+ 
