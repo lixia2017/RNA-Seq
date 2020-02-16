@@ -5,6 +5,8 @@ BiocManager::install("org.Hs.eg.db")
 library(org.Hs.eg.db)
 
 
+##ENSEMBL 转化 SYMBOL  
+
 ensids<-c("ENSG00000144644", "ENSG00000159307", "ENSG00000144485")
 
 cols<-c("SYMBOL","GENENAME")
