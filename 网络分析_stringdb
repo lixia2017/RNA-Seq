@@ -7,19 +7,28 @@ STRINGdb$help("map")
 
 STRINGdb$methods()
 
-head(data, 5)  ##控制差异基因的数目，使其在500以内；
+#head(data, 5)  ##控制差异基因的数目，使其在500以内；
 
 string_db <- STRINGdb$new(version = "10", species = 10116, score_threshold = 700, input_directory = "") ##物种人
 # string_db <- STRINGdb$new(version = "10", species = 10116, score_threshold = 700, input_directory = "") ##物种小鼠
 
-data_mapped <- string_db$map(data, "geneid", removeUnmappedRows = TRUE)   ##慢，下载后为临时文件，关闭R后自动删除！
+data_mapped <- string_db$map(data, "gene", removeUnmappedRows = TRUE)   ##慢，下载后为临时文件，关闭R后自动删除！
 
 hit <- data_mapped$STRING_id
 length(hit)
 
+
 #基因数目不能超过400；控制DEG 的数目
 
 string_db$plot_network(hit)
+
+
+###length(hit) 超过400
+hitdg<-hit[1:400]
+hitdg2<-hit[401:800]
+
+string_db$plot_network(hitdg)
+string_db$plot_network(hitdg2)
 
 
 info <- string_db$get_interactions(hit)
