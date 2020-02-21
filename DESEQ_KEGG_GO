@@ -69,6 +69,13 @@ resSig_N4vsN2 <- subset(resOrdered_N4vsN2, padj < 0.01 & abs(log2FoldChange)>4)
 #DEG.gene_symbol = as.character(output.gene_id$gene_id) #获得基因 symbol ID
 
 
+library(clusterProfiler)
+library(topGO)
+library(Rgraphviz)
+library(pathview)
+library(org.Hs.eg.db)
+
+DEG.gene_symbol = as.character(newdata$X)
 DEG.gene_symbol = rownames(resSig_N4vsN2)
 length(DEG.gene_symbol)
 
