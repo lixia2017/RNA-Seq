@@ -1,0 +1,33 @@
+##随机抽取
+data=1:10
+sample(x=data,size=5,replace=T)
+
+
+##抽取行和列
+data=data.frame(a=c(1,2,3),b=c(2,3,4))
+#抽取列
+sample(x=data,size=1,replace=T)  
+#抽取行
+data[sample(nrow(data),2,replace=F),]
+
+set.seed(1234)
+#按7：3的比例产生了1和2
+index <- sample(x = 2,size = nrow(bdata),replace=TRUE,prob = c(0.7,0.3))
+traindata <- bdata[index == 1,]
+testdata <- bdata[index == 2,]
+
+
+##按照字符抽取
+result<-data.frame()
+data<-data.frame(a=c(1,2,3,4,6,7,8,5,11,12),b=c(2,3,4,5,65,4,6,6,8,9),s=c('A','B','A','A','B','A','B','A','B','B'))
+subdata<-split(data,data$s)
+for(i in 1:length(subdata)){
+  sub<-subdata[[i]]
+  x<-sub[sample(nrow(sub),2,replace=F),]
+  result<-rbind(result,x)
+}
+result
+
+##最后一个很好
+
+参考链接：https://www.jianshu.com/p/aa9154786dd2
